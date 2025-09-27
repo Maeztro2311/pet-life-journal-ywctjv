@@ -49,8 +49,13 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
   }, []);
 
   const checkNotificationPermissions = async () => {
-    const hasPermission = await requestNotificationPermissions();
-    setNotificationsEnabled(hasPermission);
+    try {
+      const hasPermission = await requestNotificationPermissions();
+      setNotificationsEnabled(hasPermission);
+    } catch (error) {
+      console.error('Error checking notification permissions:', error);
+      setNotificationsEnabled(false);
+    }
   };
 
   const loadRoutineData = async () => {
@@ -301,43 +306,58 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
     );
   };
 
-  const handleQuickLogFeeding = () => {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    const quickFeeding: FeedingSchedule = {
-      id: Date.now().toString(),
-      time: timeString,
-      foodType: 'Quick log',
-      portionSize: '1 serving',
-      notes: `Logged on ${now.toLocaleDateString()}`,
-    };
+  const handleQuickLogFeeding = async () => {
+    try {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+      const quickFeeding: FeedingSchedule = {
+        id: Date.now().toString(),
+        time: timeString,
+        foodType: 'Quick log',
+        portionSize: '1 serving',
+        notes: `Logged on ${now.toLocaleDateString()}`,
+      };
 
-    handleSaveFeeding(quickFeeding);
+      await handleSaveFeeding(quickFeeding);
+    } catch (error) {
+      console.error('Error quick logging feeding:', error);
+      Alert.alert('Error', 'Failed to log feeding');
+    }
   };
 
-  const handleQuickLogActivity = () => {
-    const quickActivity: Activity = {
-      id: Date.now().toString(),
-      date: new Date(),
-      type: 'other',
-      description: 'Quick activity log',
-      duration: 15,
-    };
+  const handleQuickLogActivity = async () => {
+    try {
+      const quickActivity: Activity = {
+        id: Date.now().toString(),
+        date: new Date(),
+        type: 'other',
+        description: 'Quick activity log',
+        duration: 15,
+      };
 
-    handleSaveActivity(quickActivity);
+      await handleSaveActivity(quickActivity);
+    } catch (error) {
+      console.error('Error quick logging activity:', error);
+      Alert.alert('Error', 'Failed to log activity');
+    }
   };
 
-  const handleQuickLogGrooming = () => {
-    const quickGrooming: GroomingRoutine = {
-      id: Date.now().toString(),
-      type: 'other',
-      frequency: 'As needed',
-      lastDone: new Date(),
-      notes: 'Quick grooming log',
-    };
+  const handleQuickLogGrooming = async () => {
+    try {
+      const quickGrooming: GroomingRoutine = {
+        id: Date.now().toString(),
+        type: 'other',
+        frequency: 'As needed',
+        lastDone: new Date(),
+        notes: 'Quick grooming log',
+      };
 
-    handleSaveGrooming(quickGrooming);
+      await handleSaveGrooming(quickGrooming);
+    } catch (error) {
+      console.error('Error quick logging grooming:', error);
+      Alert.alert('Error', 'Failed to log grooming');
+    }
   };
 
   if (loading) {

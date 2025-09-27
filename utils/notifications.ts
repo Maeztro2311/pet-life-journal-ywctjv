@@ -36,12 +36,17 @@ export const requestNotificationPermissions = async (): Promise<boolean> => {
     
     // For Android, set up notification channel
     if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('pet-reminders', {
-        name: 'Pet Reminders',
-        importance: Notifications.AndroidImportance.HIGH,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
+      try {
+        await Notifications.setNotificationChannelAsync('pet-reminders', {
+          name: 'Pet Reminders',
+          importance: Notifications.AndroidImportance.HIGH,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      } catch (channelError) {
+        console.error('Error setting up notification channel:', channelError);
+        // Continue anyway, as this is not critical
+      }
     }
     
     console.log('Notification permissions granted');
@@ -56,7 +61,8 @@ export const scheduleNotification = async (notificationData: NotificationData): 
   try {
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {
-      throw new Error('Notification permissions not granted');
+      console.log('Cannot schedule notification: permissions not granted');
+      return null;
     }
     
     const notificationId = await Notifications.scheduleNotificationAsync({
@@ -79,10 +85,16 @@ export const scheduleNotification = async (notificationData: NotificationData): 
 
 export const cancelNotification = async (notificationId: string): Promise<void> => {
   try {
+    if (!notificationId) {
+      console.log('Cannot cancel notification: no ID provided');
+      return;
+    }
+    
     await Notifications.cancelScheduledNotificationAsync(notificationId);
     console.log('Notification cancelled:', notificationId);
   } catch (error) {
     console.error('Error cancelling notification:', error);
+    // Don't throw error, as this is not critical
   }
 };
 
@@ -92,6 +104,7 @@ export const cancelAllNotifications = async (): Promise<void> => {
     console.log('All notifications cancelled');
   } catch (error) {
     console.error('Error cancelling all notifications:', error);
+    // Don't throw error, as this is not critical
   }
 };
 
@@ -112,19 +125,29 @@ export const scheduleFeedingReminder = async (
   feedingTime: string,
   foodType: string
 ): Promise<string | null> => {
-  const [hours, minutes] = feedingTime.split(':').map(Number);
-  
-  return scheduleNotification({
-    id: `feeding-${Date.now()}`,
-    title: `Feeding Time for ${petName}`,
-    body: `Time to feed ${petName} their ${foodType}`,
-    data: { type: 'feeding', petName, feedingTime, foodType },
-    trigger: {
-      hour: hours,
-      minute: minutes,
-      repeats: true,
-    },
-  });
+  try {
+    const [hours, minutes] = feedingTime.split(':').map(Number);
+    
+    if (isNaN(hours) || isNaN(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+      console.error('Invalid feeding time format:', feedingTime);
+      return null;
+    }
+    
+    return await scheduleNotification({
+      id: `feeding-${Date.now()}`,
+      title: `Feeding Time for ${petName}`,
+      body: `Time to feed ${petName} their ${foodType}`,
+      data: { type: 'feeding', petName, feedingTime, foodType },
+      trigger: {
+        hour: hours,
+        minute: minutes,
+        repeats: true,
+      },
+    });
+  } catch (error) {
+    console.error('Error scheduling feeding reminder:', error);
+    return null;
+  }
 };
 
 export const scheduleActivityReminder = async (
@@ -132,15 +155,25 @@ export const scheduleActivityReminder = async (
   activityType: string,
   reminderTime: Date
 ): Promise<string | null> => {
-  return scheduleNotification({
-    id: `activity-${Date.now()}`,
-    title: `Activity Time for ${petName}`,
-    body: `Time for ${petName}'s ${activityType}`,
-    data: { type: 'activity', petName, activityType },
-    trigger: {
-      date: reminderTime,
-    },
-  });
+  try {
+    if (!reminderTime || isNaN(reminderTime.getTime())) {
+      console.error('Invalid reminder time:', reminderTime);
+      return null;
+    }
+    
+    return await scheduleNotification({
+      id: `activity-${Date.now()}`,
+      title: `Activity Time for ${petName}`,
+      body: `Time for ${petName}'s ${activityType}`,
+      data: { type: 'activity', petName, activityType },
+      trigger: {
+        date: reminderTime,
+      },
+    });
+  } catch (error) {
+    console.error('Error scheduling activity reminder:', error);
+    return null;
+  }
 };
 
 export const scheduleGroomingReminder = async (
@@ -148,13 +181,23 @@ export const scheduleGroomingReminder = async (
   groomingType: string,
   dueDate: Date
 ): Promise<string | null> => {
-  return scheduleNotification({
-    id: `grooming-${Date.now()}`,
-    title: `Grooming Reminder for ${petName}`,
-    body: `${petName} is due for ${groomingType}`,
-    data: { type: 'grooming', petName, groomingType },
-    trigger: {
-      date: dueDate,
-    },
-  });
+  try {
+    if (!dueDate || isNaN(dueDate.getTime())) {
+      console.error('Invalid due date:', dueDate);
+      return null;
+    }
+    
+    return await scheduleNotification({
+      id: `grooming-${Date.now()}`,
+      title: `Grooming Reminder for ${petName}`,
+      body: `${petName} is due for ${groomingType}`,
+      data: { type: 'grooming', petName, groomingType },
+      trigger: {
+        date: dueDate,
+      },
+    });
+  } catch (error) {
+    console.error('Error scheduling grooming reminder:', error);
+    return null;
+  }
 };

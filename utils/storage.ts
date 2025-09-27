@@ -46,9 +46,10 @@ export const savePet = async (pet: Pet): Promise<void> => {
     }
     
     await AsyncStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(pets));
+    console.log('Pet saved successfully:', pet.id);
   } catch (error) {
     console.error('Error saving pet:', error);
-    throw error;
+    throw new Error('Failed to save pet');
   }
 };
 
@@ -57,9 +58,10 @@ export const deletePet = async (petId: string): Promise<void> => {
     const pets = await loadPets();
     const filteredPets = pets.filter(p => p.id !== petId);
     await AsyncStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(filteredPets));
+    console.log('Pet deleted successfully:', petId);
   } catch (error) {
     console.error('Error deleting pet:', error);
-    throw error;
+    throw new Error('Failed to delete pet');
   }
 };
 
@@ -91,9 +93,10 @@ export const saveBiography = async (biography: Biography): Promise<void> => {
     }
     
     await AsyncStorage.setItem(STORAGE_KEYS.BIOGRAPHIES, JSON.stringify(biographies));
+    console.log('Biography saved successfully:', biography.petId);
   } catch (error) {
     console.error('Error saving biography:', error);
-    throw error;
+    throw new Error('Failed to save biography');
   }
 };
 
@@ -146,9 +149,10 @@ export const saveDailyRoutine = async (routine: DailyRoutine): Promise<void> => 
     }
     
     await AsyncStorage.setItem(STORAGE_KEYS.DAILY_ROUTINES, JSON.stringify(routines));
+    console.log('Daily routine saved successfully:', routine.petId);
   } catch (error) {
     console.error('Error saving daily routine:', error);
-    throw error;
+    throw new Error('Failed to save daily routine');
   }
 };
 
@@ -159,10 +163,11 @@ export const addFeedingSchedule = async (petId: string, feeding: FeedingSchedule
     if (routine) {
       routine.feedingSchedule.push(feeding);
       await saveDailyRoutine(routine);
+      console.log('Feeding schedule added successfully:', feeding.id);
     }
   } catch (error) {
     console.error('Error adding feeding schedule:', error);
-    throw error;
+    throw new Error('Failed to add feeding schedule');
   }
 };
 
@@ -174,11 +179,12 @@ export const updateFeedingSchedule = async (petId: string, feeding: FeedingSched
       if (index >= 0) {
         routine.feedingSchedule[index] = feeding;
         await saveDailyRoutine(routine);
+        console.log('Feeding schedule updated successfully:', feeding.id);
       }
     }
   } catch (error) {
     console.error('Error updating feeding schedule:', error);
-    throw error;
+    throw new Error('Failed to update feeding schedule');
   }
 };
 
@@ -188,10 +194,11 @@ export const deleteFeedingSchedule = async (petId: string, feedingId: string): P
     if (routine) {
       routine.feedingSchedule = routine.feedingSchedule.filter(f => f.id !== feedingId);
       await saveDailyRoutine(routine);
+      console.log('Feeding schedule deleted successfully:', feedingId);
     }
   } catch (error) {
     console.error('Error deleting feeding schedule:', error);
-    throw error;
+    throw new Error('Failed to delete feeding schedule');
   }
 };
 
@@ -202,10 +209,11 @@ export const addActivity = async (petId: string, activity: Activity): Promise<vo
     if (routine) {
       routine.activityLog.push(activity);
       await saveDailyRoutine(routine);
+      console.log('Activity added successfully:', activity.id);
     }
   } catch (error) {
     console.error('Error adding activity:', error);
-    throw error;
+    throw new Error('Failed to add activity');
   }
 };
 
@@ -217,11 +225,12 @@ export const updateActivity = async (petId: string, activity: Activity): Promise
       if (index >= 0) {
         routine.activityLog[index] = activity;
         await saveDailyRoutine(routine);
+        console.log('Activity updated successfully:', activity.id);
       }
     }
   } catch (error) {
     console.error('Error updating activity:', error);
-    throw error;
+    throw new Error('Failed to update activity');
   }
 };
 
@@ -231,10 +240,11 @@ export const deleteActivity = async (petId: string, activityId: string): Promise
     if (routine) {
       routine.activityLog = routine.activityLog.filter(a => a.id !== activityId);
       await saveDailyRoutine(routine);
+      console.log('Activity deleted successfully:', activityId);
     }
   } catch (error) {
     console.error('Error deleting activity:', error);
-    throw error;
+    throw new Error('Failed to delete activity');
   }
 };
 
@@ -248,10 +258,11 @@ export const addGroomingRoutine = async (petId: string, grooming: GroomingRoutin
       }
       routine.groomingRoutine.push(grooming);
       await saveDailyRoutine(routine);
+      console.log('Grooming routine added successfully:', grooming.id);
     }
   } catch (error) {
     console.error('Error adding grooming routine:', error);
-    throw error;
+    throw new Error('Failed to add grooming routine');
   }
 };
 
@@ -263,11 +274,12 @@ export const updateGroomingRoutine = async (petId: string, grooming: GroomingRou
       if (index >= 0) {
         routine.groomingRoutine[index] = grooming;
         await saveDailyRoutine(routine);
+        console.log('Grooming routine updated successfully:', grooming.id);
       }
     }
   } catch (error) {
     console.error('Error updating grooming routine:', error);
-    throw error;
+    throw new Error('Failed to update grooming routine');
   }
 };
 
@@ -277,10 +289,11 @@ export const deleteGroomingRoutine = async (petId: string, groomingId: string): 
     if (routine && routine.groomingRoutine) {
       routine.groomingRoutine = routine.groomingRoutine.filter(g => g.id !== groomingId);
       await saveDailyRoutine(routine);
+      console.log('Grooming routine deleted successfully:', groomingId);
     }
   } catch (error) {
     console.error('Error deleting grooming routine:', error);
-    throw error;
+    throw new Error('Failed to delete grooming routine');
   }
 };
 
@@ -313,9 +326,10 @@ export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
     }
     
     await AsyncStorage.setItem(STORAGE_KEYS.DIARY_ENTRIES, JSON.stringify(entries));
+    console.log('Diary entry saved successfully:', entry.id);
   } catch (error) {
     console.error('Error saving diary entry:', error);
-    throw error;
+    throw new Error('Failed to save diary entry');
   }
 };
 
@@ -324,9 +338,10 @@ export const deleteDiaryEntry = async (entryId: string): Promise<void> => {
     const entries = await loadDiaryEntries();
     const filteredEntries = entries.filter(e => e.id !== entryId);
     await AsyncStorage.setItem(STORAGE_KEYS.DIARY_ENTRIES, JSON.stringify(filteredEntries));
+    console.log('Diary entry deleted successfully:', entryId);
   } catch (error) {
     console.error('Error deleting diary entry:', error);
-    throw error;
+    throw new Error('Failed to delete diary entry');
   }
 };
 
@@ -367,8 +382,9 @@ export const saveReminder = async (reminder: Reminder): Promise<void> => {
     }
     
     await AsyncStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify(reminders));
+    console.log('Reminder saved successfully:', reminder.id);
   } catch (error) {
     console.error('Error saving reminder:', error);
-    throw error;
+    throw new Error('Failed to save reminder');
   }
 };

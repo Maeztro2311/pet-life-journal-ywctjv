@@ -1,3 +1,4 @@
+
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { SafeAreaProvider, useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
 import { Platform, View } from 'react-native';
@@ -15,19 +16,28 @@ export default function RootLayout() {
 
   useEffect(() => {
     // Set up global error logging
-    setupErrorLogging();
+    try {
+      setupErrorLogging();
+      console.log('Error logging setup completed');
+    } catch (error) {
+      console.error('Failed to setup error logging:', error);
+    }
 
     if (Platform.OS === 'web') {
-      // If there's a new emulate parameter, store it
-      if (emulate) {
-        localStorage.setItem(STORAGE_KEY, emulate);
-        setStoredEmulate(emulate);
-      } else {
-        // If no emulate parameter, try to get from localStorage
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-          setStoredEmulate(stored);
+      try {
+        // If there's a new emulate parameter, store it
+        if (emulate) {
+          localStorage.setItem(STORAGE_KEY, emulate);
+          setStoredEmulate(emulate);
+        } else {
+          // If no emulate parameter, try to get from localStorage
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            setStoredEmulate(stored);
+          }
         }
+      } catch (error) {
+        console.error('Error handling localStorage:', error);
       }
     }
   }, [emulate]);

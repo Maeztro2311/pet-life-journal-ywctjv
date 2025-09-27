@@ -16,10 +16,10 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+    loadData().catch(console.error);
   }, []);
 
-  const loadData = async () => {
+  const loadData = async (): Promise<void> => {
     try {
       console.log('Loading home screen data...');
       const [petsData, remindersData] = await Promise.all([
@@ -38,19 +38,31 @@ export default function HomeScreen() {
     }
   };
 
-  const navigateToAddPet = () => {
-    router.push('/pets/add');
+  const navigateToAddPet = (): void => {
+    try {
+      router.push('/pets/add');
+    } catch (error) {
+      console.error('Error navigating to add pet:', error);
+    }
   };
 
-  const navigateToPetProfile = (petId: string) => {
-    router.push(`/pets/${petId}`);
+  const navigateToPetProfile = (petId: string): void => {
+    try {
+      router.push(`/pets/${petId}`);
+    } catch (error) {
+      console.error('Error navigating to pet profile:', error);
+    }
   };
 
-  const navigateToDiary = () => {
-    router.push('/diary');
+  const navigateToDiary = (): void => {
+    try {
+      router.push('/diary');
+    } catch (error) {
+      console.error('Error navigating to diary:', error);
+    }
   };
 
-  const navigateToReminders = () => {
+  const navigateToReminders = (): void => {
     // TODO: Implement reminders screen
     Alert.alert('Coming Soon', 'Reminders feature will be available soon!');
   };

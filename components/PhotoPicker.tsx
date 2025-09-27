@@ -22,25 +22,31 @@ export default function PhotoPicker({
 }: PhotoPickerProps) {
   const [isLoading, setIsLoading] = useState(false);
 
-  const requestPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Sorry, we need camera roll permissions to select photos.',
-        [{ text: 'OK' }]
-      );
+  const requestPermission = async (): Promise<boolean> => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Sorry, we need camera roll permissions to select photos.',
+          [{ text: 'OK' }]
+        );
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error requesting media library permission:', error);
       return false;
     }
-    return true;
   };
 
-  const pickImage = async () => {
-    const hasPermission = await requestPermission();
-    if (!hasPermission) return;
-
-    setIsLoading(true);
+  const pickImage = async (): Promise<void> => {
     try {
+      const hasPermission = await requestPermission();
+      if (!hasPermission) return;
+
+      setIsLoading(true);
+      
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
@@ -60,19 +66,20 @@ export default function PhotoPicker({
     }
   };
 
-  const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert(
-        'Permission Required',
-        'Sorry, we need camera permissions to take photos.',
-        [{ text: 'OK' }]
-      );
-      return;
-    }
-
-    setIsLoading(true);
+  const takePhoto = async (): Promise<void> => {
     try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Sorry, we need camera permissions to take photos.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      setIsLoading(true);
+      
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         aspect: [1, 1],
@@ -91,19 +98,19 @@ export default function PhotoPicker({
     }
   };
 
-  const showPhotoOptions = () => {
+  const showPhotoOptions = (): void => {
     Alert.alert(
       'Select Photo',
       'Choose how you want to add a photo',
       [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Photo Library', onPress: pickImage },
+        { text: 'Camera', onPress: () => takePhoto().catch(console.error) },
+        { text: 'Photo Library', onPress: () => pickImage().catch(console.error) },
         { text: 'Cancel', style: 'cancel' }
       ]
     );
   };
 
-  const showRemoveOptions = () => {
+  const showRemoveOptions = (): void => {
     Alert.alert(
       'Remove Photo',
       'Are you sure you want to remove this photo?',
