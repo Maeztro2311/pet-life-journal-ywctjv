@@ -1,9 +1,10 @@
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { SafeAreaProvider, useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import { setupErrorLogging } from '../utils/errorLogger';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import BottomNavigation from '../components/BottomNavigation';
 
 const STORAGE_KEY = 'emulated_device';
 
@@ -47,12 +48,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
         <GestureHandlerRootView style={{ flex: 1 }}>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: 'default',
-            }}
-          />
+          <View style={{ flex: 1 }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'default',
+              }}
+            />
+            <BottomNavigation />
+          </View>
         </GestureHandlerRootView>
     </SafeAreaProvider>
   );

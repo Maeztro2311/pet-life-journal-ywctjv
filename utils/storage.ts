@@ -49,7 +49,24 @@ export const savePets = async (pets: Pet[]): Promise<void> => {
 };
 
 export const loadPets = async (): Promise<Pet[]> => {
-  return loadData<Pet>(STORAGE_KEYS.PETS);
+  try {
+    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.PETS);
+    if (jsonData) {
+      const data = JSON.parse(jsonData);
+      // Convert date strings back to Date objects
+      const pets = data.map((pet: any) => ({
+        ...pet,
+        dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : undefined,
+        adoptionDate: pet.adoptionDate ? new Date(pet.adoptionDate) : undefined,
+      }));
+      console.log('Loaded pets data successfully with date conversion');
+      return pets;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading pets data:', error);
+    return [];
+  }
 };
 
 export const savePet = async (pet: Pet): Promise<void> => {
@@ -131,7 +148,23 @@ export const saveDiaryEntries = async (entries: DiaryEntry[]): Promise<void> => 
 };
 
 export const loadDiaryEntries = async (): Promise<DiaryEntry[]> => {
-  return loadData<DiaryEntry>(STORAGE_KEYS.DIARY_ENTRIES);
+  try {
+    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.DIARY_ENTRIES);
+    if (jsonData) {
+      const data = JSON.parse(jsonData);
+      // Convert date strings back to Date objects
+      const entries = data.map((entry: any) => ({
+        ...entry,
+        date: new Date(entry.date),
+      }));
+      console.log('Loaded diary entries data successfully with date conversion');
+      return entries;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading diary entries data:', error);
+    return [];
+  }
 };
 
 export const getDiaryEntriesByPetId = async (petId: string): Promise<DiaryEntry[]> => {
@@ -158,7 +191,23 @@ export const saveReminders = async (reminders: Reminder[]): Promise<void> => {
 };
 
 export const loadReminders = async (): Promise<Reminder[]> => {
-  return loadData<Reminder>(STORAGE_KEYS.REMINDERS);
+  try {
+    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
+    if (jsonData) {
+      const data = JSON.parse(jsonData);
+      // Convert date strings back to Date objects
+      const reminders = data.map((reminder: any) => ({
+        ...reminder,
+        date: new Date(reminder.date),
+      }));
+      console.log('Loaded reminders data successfully with date conversion');
+      return reminders;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading reminders data:', error);
+    return [];
+  }
 };
 
 export const getUpcomingReminders = async (): Promise<Reminder[]> => {
