@@ -1,6 +1,6 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Pet, Biography, HealthRecord, GrowthRecord, DailyRoutine, DiaryEntry, Expense, Contact, Memorial, TodoItem, Reminder } from '../types';
+import { Pet, Biography, HealthRecord, GrowthRecord, DailyRoutine, DiaryEntry, Expense, Contact, Memorial, TodoItem, Reminder, FeedingSchedule, Activity, GroomingRoutine } from '../types';
 
 const STORAGE_KEYS = {
   PETS: 'pets',
@@ -140,6 +140,172 @@ export const saveHealthRecord = async (record: HealthRecord): Promise<void> => {
   }
   
   return saveHealthRecords(records);
+};
+
+// Daily Routine functions
+export const saveDailyRoutines = async (routines: DailyRoutine[]): Promise<void> => {
+  try {
+    const jsonData = JSON.stringify(routines);
+    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_ROUTINES, jsonData);
+    console.log('Saved daily routines data successfully');
+  } catch (error) {
+    console.error('Error saving daily routines data:', error);
+    throw error;
+  }
+};
+
+export const loadDailyRoutines = async (): Promise<DailyRoutine[]> => {
+  try {
+    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_ROUTINES);
+    if (jsonData) {
+      const data = JSON.parse(jsonData);
+      // Convert date strings back to Date objects
+      const routines = data.map((routine: any) => ({
+        ...routine,
+        activityLog: routine.activityLog?.map((activity: any) => ({
+          ...activity,
+          date: new Date(activity.date),
+        })) || [],
+        groomingRoutine: routine.groomingRoutine?.map((grooming: any) => ({
+          ...grooming,
+          lastDone: grooming.lastDone ? new Date(grooming.lastDone) : undefined,
+          nextDue: grooming.nextDue ? new Date(grooming.nextDue) : undefined,
+        })) || [],
+      }));
+      console.log('Loaded daily routines data successfully with date conversion');
+      return routines;
+    }
+    return [];
+  } catch (error) {
+    console.error('Error loading daily routines data:', error);
+    return [];
+  }
+};
+
+export const getDailyRoutineByPetId = async (petId: string): Promise<DailyRoutine | null> => {
+  const routines = await loadDailyRoutines();
+  return routines.find(r => r.petId === petId) || null;
+};
+
+export const saveDailyRoutine = async (routine: DailyRoutine): Promise<void> => {
+  const routines = await loadDailyRoutines();
+  const existingIndex = routines.findIndex(r => r.petId === routine.petId);
+  
+  if (existingIndex >= 0) {
+    routines[existingIndex] = routine;
+  } else {
+    routines.push(routine);
+  }
+  
+  return saveDailyRoutines(routines);
+};
+
+export const addFeedingSchedule = async (petId: string, feeding: FeedingSchedule): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    routine.feedingSchedule.push(feeding);
+    await saveDailyRoutine(routine);
+  } else {
+    const newRoutine: DailyRoutine = {
+      petId,
+      feedingSchedule: [feeding],
+      activityLog: [],
+      groomingRoutine: [],
+    };
+    await saveDailyRoutine(newRoutine);
+  }
+};
+
+export const updateFeedingSchedule = async (petId: string, feeding: FeedingSchedule): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    const index = routine.feedingSchedule.findIndex(f => f.id === feeding.id);
+    if (index >= 0) {
+      routine.feedingSchedule[index] = feeding;
+      await saveDailyRoutine(routine);
+    }
+  }
+};
+
+export const deleteFeedingSchedule = async (petId: string, feedingId: string): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    routine.feedingSchedule = routine.feedingSchedule.filter(f => f.id !== feedingId);
+    await saveDailyRoutine(routine);
+  }
+};
+
+export const addActivity = async (petId: string, activity: Activity): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    routine.activityLog.push(activity);
+    await saveDailyRoutine(routine);
+  } else {
+    const newRoutine: DailyRoutine = {
+      petId,
+      feedingSchedule: [],
+      activityLog: [activity],
+      groomingRoutine: [],
+    };
+    await saveDailyRoutine(newRoutine);
+  }
+};
+
+export const updateActivity = async (petId: string, activity: Activity): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    const index = routine.activityLog.findIndex(a => a.id === activity.id);
+    if (index >= 0) {
+      routine.activityLog[index] = activity;
+      await saveDailyRoutine(routine);
+    }
+  }
+};
+
+export const deleteActivity = async (petId: string, activityId: string): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    routine.activityLog = routine.activityLog.filter(a => a.id !== activityId);
+    await saveDailyRoutine(routine);
+  }
+};
+
+export const addGroomingRoutine = async (petId: string, grooming: GroomingRoutine): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine) {
+    if (!routine.groomingRoutine) {
+      routine.groomingRoutine = [];
+    }
+    routine.groomingRoutine.push(grooming);
+    await saveDailyRoutine(routine);
+  } else {
+    const newRoutine: DailyRoutine = {
+      petId,
+      feedingSchedule: [],
+      activityLog: [],
+      groomingRoutine: [grooming],
+    };
+    await saveDailyRoutine(newRoutine);
+  }
+};
+
+export const updateGroomingRoutine = async (petId: string, grooming: GroomingRoutine): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine && routine.groomingRoutine) {
+    const index = routine.groomingRoutine.findIndex(g => g.id === grooming.id);
+    if (index >= 0) {
+      routine.groomingRoutine[index] = grooming;
+      await saveDailyRoutine(routine);
+    }
+  }
+};
+
+export const deleteGroomingRoutine = async (petId: string, groomingId: string): Promise<void> => {
+  const routine = await getDailyRoutineByPetId(petId);
+  if (routine && routine.groomingRoutine) {
+    routine.groomingRoutine = routine.groomingRoutine.filter(g => g.id !== groomingId);
+    await saveDailyRoutine(routine);
+  }
 };
 
 // Diary Entries functions
