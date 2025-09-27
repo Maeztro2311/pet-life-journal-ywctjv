@@ -67,13 +67,13 @@ export default function PetIdentityTab({ pet, onPetUpdate }: PetIdentityTabProps
   };
 
   const handlePhotoSelected = (uri: string) => {
-    setEditedPet(prev => ({ ...prev, profileImage: uri }));
     console.log('Photo selected for pet:', uri);
+    setEditedPet(prev => ({ ...prev, profileImage: uri }));
   };
 
   const handlePhotoRemoved = () => {
-    setEditedPet(prev => ({ ...prev, profileImage: undefined }));
     console.log('Photo removed from pet');
+    setEditedPet(prev => ({ ...prev, profileImage: undefined }));
   };
 
   const calculateAge = (birthDate: Date): string => {
@@ -97,21 +97,12 @@ export default function PetIdentityTab({ pet, onPetUpdate }: PetIdentityTabProps
         <View style={[commonStyles.card, { marginBottom: 20, alignItems: 'center' }]}>
           <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Profile Photo</Text>
           
-          {isEditing ? (
-            <PhotoPicker
-              currentPhoto={editedPet.profileImage}
-              onPhotoSelected={handlePhotoSelected}
-              onPhotoRemoved={handlePhotoRemoved}
-              size={120}
-            />
-          ) : (
-            <PhotoPicker
-              currentPhoto={pet.profileImage}
-              onPhotoSelected={() => {}} // Read-only when not editing
-              onPhotoRemoved={() => {}} // Read-only when not editing
-              size={120}
-            />
-          )}
+          <PhotoPicker
+            currentPhoto={isEditing ? editedPet.profileImage : pet.profileImage}
+            onPhotoSelected={isEditing ? handlePhotoSelected : () => {}}
+            onPhotoRemoved={isEditing ? handlePhotoRemoved : () => {}}
+            size={120}
+          />
         </View>
 
         {/* Edit Button */}

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import { commonStyles, colors } from '../styles/commonStyles';
 import Icon from './Icon';
 import { Pet, DailyRoutine, FeedingSchedule, Activity, GroomingRoutine } from '../types';
@@ -16,6 +16,12 @@ import {
   updateGroomingRoutine,
   deleteGroomingRoutine
 } from '../utils/storage';
+import { 
+  scheduleFeedingReminder, 
+  scheduleGroomingReminder, 
+  cancelNotification,
+  requestNotificationPermissions 
+} from '../utils/notifications';
 import FeedingScheduleForm from './FeedingScheduleForm';
 import ActivityForm from './ActivityForm';
 import GroomingForm from './GroomingForm';
@@ -27,6 +33,7 @@ interface PetRoutineTabProps {
 export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
   const [routine, setRoutine] = useState<DailyRoutine | null>(null);
   const [loading, setLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   
   // Form states
   const [showFeedingForm, setShowFeedingForm] = useState(false);
@@ -38,7 +45,13 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
 
   useEffect(() => {
     loadRoutineData();
+    checkNotificationPermissions();
   }, []);
+
+  const checkNotificationPermissions = async () => {
+    const hasPermission = await requestNotificationPermissions();
+    setNotificationsEnabled(hasPermission);
+  };
 
   const loadRoutineData = async () => {
     try {
@@ -51,6 +64,81 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
       Alert.alert('Error', 'Failed to load routine data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const toggleFeedingReminder = async (feeding: FeedingSchedule) => {
+    try {
+      const updatedFeeding = { ...feeding };
+      
+      if (feeding.reminderEnabled && feeding.notificationId) {
+        // Cancel existing notification
+        await cancelNotification(feeding.notificationId);
+        updatedFeeding.reminderEnabled = false;
+        updatedFeeding.notificationId = undefined;
+      } else {
+        // Schedule new notification
+        const notificationId = await scheduleFeedingReminder(
+          pet.name,
+          feeding.time,
+          feeding.foodType
+        );
+        
+        if (notificationId) {
+          updatedFeeding.reminderEnabled = true;
+          updatedFeeding.notificationId = notificationId;
+        } else {
+          Alert.alert('Error', 'Failed to schedule reminder');
+          return;
+        }
+      }
+      
+      await updateFeedingSchedule(pet.id, updatedFeeding);
+      await loadRoutineData();
+      console.log('Feeding reminder toggled successfully');
+    } catch (error) {
+      console.error('Error toggling feeding reminder:', error);
+      Alert.alert('Error', 'Failed to toggle reminder');
+    }
+  };
+
+  const toggleGroomingReminder = async (grooming: GroomingRoutine) => {
+    try {
+      if (!grooming.nextDue) {
+        Alert.alert('Error', 'Please set a due date first');
+        return;
+      }
+
+      const updatedGrooming = { ...grooming };
+      
+      if (grooming.reminderEnabled && grooming.notificationId) {
+        // Cancel existing notification
+        await cancelNotification(grooming.notificationId);
+        updatedGrooming.reminderEnabled = false;
+        updatedGrooming.notificationId = undefined;
+      } else {
+        // Schedule new notification
+        const notificationId = await scheduleGroomingReminder(
+          pet.name,
+          grooming.type,
+          grooming.nextDue
+        );
+        
+        if (notificationId) {
+          updatedGrooming.reminderEnabled = true;
+          updatedGrooming.notificationId = notificationId;
+        } else {
+          Alert.alert('Error', 'Failed to schedule reminder');
+          return;
+        }
+      }
+      
+      await updateGroomingRoutine(pet.id, updatedGrooming);
+      await loadRoutineData();
+      console.log('Grooming reminder toggled successfully');
+    } catch (error) {
+      console.error('Error toggling grooming reminder:', error);
+      Alert.alert('Error', 'Failed to toggle reminder');
     }
   };
 
@@ -90,6 +178,10 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
           style: 'destructive',
           onPress: async () => {
             try {
+              const feeding = routine?.feedingSchedule.find(f => f.id === feedingId);
+              if (feeding?.notificationId) {
+                await cancelNotification(feeding.notificationId);
+              }
               await deleteFeedingSchedule(pet.id, feedingId);
               await loadRoutineData();
               console.log('Feeding schedule deleted successfully');
@@ -139,6 +231,10 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
           style: 'destructive',
           onPress: async () => {
             try {
+              const activity = routine?.activityLog.find(a => a.id === activityId);
+              if (activity?.notificationId) {
+                await cancelNotification(activity.notificationId);
+              }
               await deleteActivity(pet.id, activityId);
               await loadRoutineData();
               console.log('Activity deleted successfully');
@@ -188,6 +284,10 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
           style: 'destructive',
           onPress: async () => {
             try {
+              const grooming = routine?.groomingRoutine?.find(g => g.id === groomingId);
+              if (grooming?.notificationId) {
+                await cancelNotification(grooming.notificationId);
+              }
               await deleteGroomingRoutine(pet.id, groomingId);
               await loadRoutineData();
               console.log('Grooming routine deleted successfully');
@@ -252,6 +352,23 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
     <>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={{ padding: 20 }}>
+          {/* Notifications Status */}
+          {!notificationsEnabled && (
+            <View style={[commonStyles.card, { marginBottom: 20, backgroundColor: colors.warning + '20', borderColor: colors.warning, borderWidth: 1 }]}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Icon name="notifications-off" size={24} color={colors.warning} style={{ marginRight: 12 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 4 }]}>
+                    Notifications Disabled
+                  </Text>
+                  <Text style={commonStyles.textLight}>
+                    Enable notifications in your device settings to receive reminders
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Feeding Schedule */}
           <View style={[commonStyles.card, { marginBottom: 20 }]}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
@@ -285,12 +402,29 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
                   <Text style={[commonStyles.text, { marginBottom: 4 }]}>
                     <Text style={{ fontWeight: '600' }}>Food: </Text>{feeding.foodType}
                   </Text>
-                  <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                  <Text style={[commonStyles.text, { marginBottom: 8 }]}>
                     <Text style={{ fontWeight: '600' }}>Portion: </Text>{feeding.portionSize}
                   </Text>
                   {feeding.notes && (
-                    <Text style={commonStyles.textLight}>{feeding.notes}</Text>
+                    <Text style={[commonStyles.textLight, { marginBottom: 8 }]}>{feeding.notes}</Text>
                   )}
+                  
+                  {/* Reminder Toggle */}
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Icon name="notifications" size={16} color={feeding.reminderEnabled ? colors.primary : colors.textLight} style={{ marginRight: 8 }} />
+                      <Text style={[commonStyles.text, { color: feeding.reminderEnabled ? colors.primary : colors.textLight }]}>
+                        Daily Reminder
+                      </Text>
+                    </View>
+                    <Switch
+                      value={feeding.reminderEnabled || false}
+                      onValueChange={() => toggleFeedingReminder(feeding)}
+                      disabled={!notificationsEnabled}
+                      trackColor={{ false: colors.border, true: colors.primary + '40' }}
+                      thumbColor={feeding.reminderEnabled ? colors.primary : colors.textLight}
+                    />
+                  </View>
                 </View>
               ))
             ) : (
@@ -422,13 +556,32 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
                     </Text>
                   )}
                   {grooming.nextDue && (
-                    <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                    <Text style={[commonStyles.text, { marginBottom: 8 }]}>
                       <Text style={{ fontWeight: '600' }}>Next due: </Text>
                       {grooming.nextDue.toLocaleDateString()}
                     </Text>
                   )}
                   {grooming.notes && (
-                    <Text style={commonStyles.textLight}>{grooming.notes}</Text>
+                    <Text style={[commonStyles.textLight, { marginBottom: 8 }]}>{grooming.notes}</Text>
+                  )}
+                  
+                  {/* Reminder Toggle */}
+                  {grooming.nextDue && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8, borderTopWidth: 1, borderTopColor: colors.border }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Icon name="notifications" size={16} color={grooming.reminderEnabled ? colors.primary : colors.textLight} style={{ marginRight: 8 }} />
+                        <Text style={[commonStyles.text, { color: grooming.reminderEnabled ? colors.primary : colors.textLight }]}>
+                          Due Date Reminder
+                        </Text>
+                      </View>
+                      <Switch
+                        value={grooming.reminderEnabled || false}
+                        onValueChange={() => toggleGroomingReminder(grooming)}
+                        disabled={!notificationsEnabled}
+                        trackColor={{ false: colors.border, true: colors.primary + '40' }}
+                        thumbColor={grooming.reminderEnabled ? colors.primary : colors.textLight}
+                      />
+                    </View>
                   )}
                 </View>
               ))

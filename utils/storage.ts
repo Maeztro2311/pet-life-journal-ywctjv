@@ -16,383 +16,359 @@ const STORAGE_KEYS = {
   REMINDERS: 'reminders',
 };
 
-// Generic storage functions
-export const saveData = async <T>(key: string, data: T[]): Promise<void> => {
-  try {
-    const jsonData = JSON.stringify(data);
-    await AsyncStorage.setItem(key, jsonData);
-    console.log(`Saved ${key} data successfully`);
-  } catch (error) {
-    console.error(`Error saving ${key} data:`, error);
-    throw error;
-  }
-};
-
-export const loadData = async <T>(key: string): Promise<T[]> => {
-  try {
-    const jsonData = await AsyncStorage.getItem(key);
-    if (jsonData) {
-      const data = JSON.parse(jsonData);
-      console.log(`Loaded ${key} data successfully`);
-      return data;
-    }
-    return [];
-  } catch (error) {
-    console.error(`Error loading ${key} data:`, error);
-    return [];
-  }
-};
-
-// Pet-specific functions
-export const savePets = async (pets: Pet[]): Promise<void> => {
-  return saveData(STORAGE_KEYS.PETS, pets);
-};
-
+// Pet functions
 export const loadPets = async (): Promise<Pet[]> => {
   try {
-    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.PETS);
-    if (jsonData) {
-      const data = JSON.parse(jsonData);
-      // Convert date strings back to Date objects
-      const pets = data.map((pet: any) => ({
-        ...pet,
-        dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : undefined,
-        adoptionDate: pet.adoptionDate ? new Date(pet.adoptionDate) : undefined,
-      }));
-      console.log('Loaded pets data successfully with date conversion');
-      return pets;
-    }
-    return [];
+    const petsString = await AsyncStorage.getItem(STORAGE_KEYS.PETS);
+    if (!petsString) return [];
+
+    const pets = JSON.parse(petsString) as Pet[];
+    return pets.map(pet => ({
+      ...pet,
+      dateOfBirth: pet.dateOfBirth ? new Date(pet.dateOfBirth) : undefined,
+      adoptionDate: pet.adoptionDate ? new Date(pet.adoptionDate) : undefined,
+    }));
   } catch (error) {
-    console.error('Error loading pets data:', error);
+    console.error('Error loading pets:', error);
     return [];
   }
 };
 
 export const savePet = async (pet: Pet): Promise<void> => {
-  const pets = await loadPets();
-  const existingIndex = pets.findIndex(p => p.id === pet.id);
-  
-  if (existingIndex >= 0) {
-    pets[existingIndex] = pet;
-  } else {
-    pets.push(pet);
-  }
-  
-  return savePets(pets);
-};
-
-export const deletePet = async (petId: string): Promise<void> => {
-  const pets = await loadPets();
-  const filteredPets = pets.filter(p => p.id !== petId);
-  return savePets(filteredPets);
-};
-
-// Biography functions
-export const saveBiographies = async (biographies: Biography[]): Promise<void> => {
-  return saveData(STORAGE_KEYS.BIOGRAPHIES, biographies);
-};
-
-export const loadBiographies = async (): Promise<Biography[]> => {
-  return loadData<Biography>(STORAGE_KEYS.BIOGRAPHIES);
-};
-
-export const getBiographyByPetId = async (petId: string): Promise<Biography | null> => {
-  const biographies = await loadBiographies();
-  return biographies.find(b => b.petId === petId) || null;
-};
-
-export const saveBiography = async (biography: Biography): Promise<void> => {
-  const biographies = await loadBiographies();
-  const existingIndex = biographies.findIndex(b => b.petId === biography.petId);
-  
-  if (existingIndex >= 0) {
-    biographies[existingIndex] = biography;
-  } else {
-    biographies.push(biography);
-  }
-  
-  return saveBiographies(biographies);
-};
-
-// Health Records functions
-export const saveHealthRecords = async (records: HealthRecord[]): Promise<void> => {
-  return saveData(STORAGE_KEYS.HEALTH_RECORDS, records);
-};
-
-export const loadHealthRecords = async (): Promise<HealthRecord[]> => {
-  return loadData<HealthRecord>(STORAGE_KEYS.HEALTH_RECORDS);
-};
-
-export const getHealthRecordsByPetId = async (petId: string): Promise<HealthRecord[]> => {
-  const records = await loadHealthRecords();
-  return records.filter(r => r.petId === petId);
-};
-
-export const saveHealthRecord = async (record: HealthRecord): Promise<void> => {
-  const records = await loadHealthRecords();
-  const existingIndex = records.findIndex(r => r.id === record.id);
-  
-  if (existingIndex >= 0) {
-    records[existingIndex] = record;
-  } else {
-    records.push(record);
-  }
-  
-  return saveHealthRecords(records);
-};
-
-// Daily Routine functions
-export const saveDailyRoutines = async (routines: DailyRoutine[]): Promise<void> => {
   try {
-    const jsonData = JSON.stringify(routines);
-    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_ROUTINES, jsonData);
-    console.log('Saved daily routines data successfully');
+    const pets = await loadPets();
+    const existingIndex = pets.findIndex(p => p.id === pet.id);
+    
+    if (existingIndex >= 0) {
+      pets[existingIndex] = pet;
+    } else {
+      pets.push(pet);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(pets));
   } catch (error) {
-    console.error('Error saving daily routines data:', error);
+    console.error('Error saving pet:', error);
     throw error;
   }
 };
 
-export const loadDailyRoutines = async (): Promise<DailyRoutine[]> => {
+export const deletePet = async (petId: string): Promise<void> => {
   try {
-    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_ROUTINES);
-    if (jsonData) {
-      const data = JSON.parse(jsonData);
+    const pets = await loadPets();
+    const filteredPets = pets.filter(p => p.id !== petId);
+    await AsyncStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(filteredPets));
+  } catch (error) {
+    console.error('Error deleting pet:', error);
+    throw error;
+  }
+};
+
+// Biography functions
+export const getBiographyByPetId = async (petId: string): Promise<Biography | null> => {
+  try {
+    const biographiesString = await AsyncStorage.getItem(STORAGE_KEYS.BIOGRAPHIES);
+    if (!biographiesString) return null;
+
+    const biographies = JSON.parse(biographiesString) as Biography[];
+    return biographies.find(b => b.petId === petId) || null;
+  } catch (error) {
+    console.error('Error loading biography:', error);
+    return null;
+  }
+};
+
+export const saveBiography = async (biography: Biography): Promise<void> => {
+  try {
+    const biographiesString = await AsyncStorage.getItem(STORAGE_KEYS.BIOGRAPHIES);
+    const biographies = biographiesString ? JSON.parse(biographiesString) as Biography[] : [];
+    
+    const existingIndex = biographies.findIndex(b => b.petId === biography.petId);
+    
+    if (existingIndex >= 0) {
+      biographies[existingIndex] = biography;
+    } else {
+      biographies.push(biography);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.BIOGRAPHIES, JSON.stringify(biographies));
+  } catch (error) {
+    console.error('Error saving biography:', error);
+    throw error;
+  }
+};
+
+// Daily Routine functions
+export const getDailyRoutineByPetId = async (petId: string): Promise<DailyRoutine | null> => {
+  try {
+    const routinesString = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_ROUTINES);
+    if (!routinesString) return { petId, feedingSchedule: [], activityLog: [], groomingRoutine: [] };
+
+    const routines = JSON.parse(routinesString) as DailyRoutine[];
+    let routine = routines.find(r => r.petId === petId);
+    
+    if (!routine) {
+      routine = { petId, feedingSchedule: [], activityLog: [], groomingRoutine: [] };
+    } else {
       // Convert date strings back to Date objects
-      const routines = data.map((routine: any) => ({
-        ...routine,
-        activityLog: routine.activityLog?.map((activity: any) => ({
-          ...activity,
-          date: new Date(activity.date),
-        })) || [],
-        groomingRoutine: routine.groomingRoutine?.map((grooming: any) => ({
+      routine.activityLog = routine.activityLog.map(activity => ({
+        ...activity,
+        date: new Date(activity.date),
+        reminderTime: activity.reminderTime ? new Date(activity.reminderTime) : undefined,
+      }));
+      
+      if (routine.groomingRoutine) {
+        routine.groomingRoutine = routine.groomingRoutine.map(grooming => ({
           ...grooming,
           lastDone: grooming.lastDone ? new Date(grooming.lastDone) : undefined,
           nextDue: grooming.nextDue ? new Date(grooming.nextDue) : undefined,
-        })) || [],
-      }));
-      console.log('Loaded daily routines data successfully with date conversion');
-      return routines;
+        }));
+      }
     }
-    return [];
+    
+    return routine;
   } catch (error) {
-    console.error('Error loading daily routines data:', error);
-    return [];
+    console.error('Error loading daily routine:', error);
+    return { petId, feedingSchedule: [], activityLog: [], groomingRoutine: [] };
   }
-};
-
-export const getDailyRoutineByPetId = async (petId: string): Promise<DailyRoutine | null> => {
-  const routines = await loadDailyRoutines();
-  return routines.find(r => r.petId === petId) || null;
 };
 
 export const saveDailyRoutine = async (routine: DailyRoutine): Promise<void> => {
-  const routines = await loadDailyRoutines();
-  const existingIndex = routines.findIndex(r => r.petId === routine.petId);
-  
-  if (existingIndex >= 0) {
-    routines[existingIndex] = routine;
-  } else {
-    routines.push(routine);
+  try {
+    const routinesString = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_ROUTINES);
+    const routines = routinesString ? JSON.parse(routinesString) as DailyRoutine[] : [];
+    
+    const existingIndex = routines.findIndex(r => r.petId === routine.petId);
+    
+    if (existingIndex >= 0) {
+      routines[existingIndex] = routine;
+    } else {
+      routines.push(routine);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.DAILY_ROUTINES, JSON.stringify(routines));
+  } catch (error) {
+    console.error('Error saving daily routine:', error);
+    throw error;
   }
-  
-  return saveDailyRoutines(routines);
 };
 
+// Feeding Schedule functions
 export const addFeedingSchedule = async (petId: string, feeding: FeedingSchedule): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    routine.feedingSchedule.push(feeding);
-    await saveDailyRoutine(routine);
-  } else {
-    const newRoutine: DailyRoutine = {
-      petId,
-      feedingSchedule: [feeding],
-      activityLog: [],
-      groomingRoutine: [],
-    };
-    await saveDailyRoutine(newRoutine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      routine.feedingSchedule.push(feeding);
+      await saveDailyRoutine(routine);
+    }
+  } catch (error) {
+    console.error('Error adding feeding schedule:', error);
+    throw error;
   }
 };
 
 export const updateFeedingSchedule = async (petId: string, feeding: FeedingSchedule): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    const index = routine.feedingSchedule.findIndex(f => f.id === feeding.id);
-    if (index >= 0) {
-      routine.feedingSchedule[index] = feeding;
-      await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      const index = routine.feedingSchedule.findIndex(f => f.id === feeding.id);
+      if (index >= 0) {
+        routine.feedingSchedule[index] = feeding;
+        await saveDailyRoutine(routine);
+      }
     }
+  } catch (error) {
+    console.error('Error updating feeding schedule:', error);
+    throw error;
   }
 };
 
 export const deleteFeedingSchedule = async (petId: string, feedingId: string): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    routine.feedingSchedule = routine.feedingSchedule.filter(f => f.id !== feedingId);
-    await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      routine.feedingSchedule = routine.feedingSchedule.filter(f => f.id !== feedingId);
+      await saveDailyRoutine(routine);
+    }
+  } catch (error) {
+    console.error('Error deleting feeding schedule:', error);
+    throw error;
   }
 };
 
+// Activity functions
 export const addActivity = async (petId: string, activity: Activity): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    routine.activityLog.push(activity);
-    await saveDailyRoutine(routine);
-  } else {
-    const newRoutine: DailyRoutine = {
-      petId,
-      feedingSchedule: [],
-      activityLog: [activity],
-      groomingRoutine: [],
-    };
-    await saveDailyRoutine(newRoutine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      routine.activityLog.push(activity);
+      await saveDailyRoutine(routine);
+    }
+  } catch (error) {
+    console.error('Error adding activity:', error);
+    throw error;
   }
 };
 
 export const updateActivity = async (petId: string, activity: Activity): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    const index = routine.activityLog.findIndex(a => a.id === activity.id);
-    if (index >= 0) {
-      routine.activityLog[index] = activity;
-      await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      const index = routine.activityLog.findIndex(a => a.id === activity.id);
+      if (index >= 0) {
+        routine.activityLog[index] = activity;
+        await saveDailyRoutine(routine);
+      }
     }
+  } catch (error) {
+    console.error('Error updating activity:', error);
+    throw error;
   }
 };
 
 export const deleteActivity = async (petId: string, activityId: string): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    routine.activityLog = routine.activityLog.filter(a => a.id !== activityId);
-    await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      routine.activityLog = routine.activityLog.filter(a => a.id !== activityId);
+      await saveDailyRoutine(routine);
+    }
+  } catch (error) {
+    console.error('Error deleting activity:', error);
+    throw error;
   }
 };
 
+// Grooming Routine functions
 export const addGroomingRoutine = async (petId: string, grooming: GroomingRoutine): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine) {
-    if (!routine.groomingRoutine) {
-      routine.groomingRoutine = [];
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine) {
+      if (!routine.groomingRoutine) {
+        routine.groomingRoutine = [];
+      }
+      routine.groomingRoutine.push(grooming);
+      await saveDailyRoutine(routine);
     }
-    routine.groomingRoutine.push(grooming);
-    await saveDailyRoutine(routine);
-  } else {
-    const newRoutine: DailyRoutine = {
-      petId,
-      feedingSchedule: [],
-      activityLog: [],
-      groomingRoutine: [grooming],
-    };
-    await saveDailyRoutine(newRoutine);
+  } catch (error) {
+    console.error('Error adding grooming routine:', error);
+    throw error;
   }
 };
 
 export const updateGroomingRoutine = async (petId: string, grooming: GroomingRoutine): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine && routine.groomingRoutine) {
-    const index = routine.groomingRoutine.findIndex(g => g.id === grooming.id);
-    if (index >= 0) {
-      routine.groomingRoutine[index] = grooming;
-      await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine && routine.groomingRoutine) {
+      const index = routine.groomingRoutine.findIndex(g => g.id === grooming.id);
+      if (index >= 0) {
+        routine.groomingRoutine[index] = grooming;
+        await saveDailyRoutine(routine);
+      }
     }
+  } catch (error) {
+    console.error('Error updating grooming routine:', error);
+    throw error;
   }
 };
 
 export const deleteGroomingRoutine = async (petId: string, groomingId: string): Promise<void> => {
-  const routine = await getDailyRoutineByPetId(petId);
-  if (routine && routine.groomingRoutine) {
-    routine.groomingRoutine = routine.groomingRoutine.filter(g => g.id !== groomingId);
-    await saveDailyRoutine(routine);
+  try {
+    const routine = await getDailyRoutineByPetId(petId);
+    if (routine && routine.groomingRoutine) {
+      routine.groomingRoutine = routine.groomingRoutine.filter(g => g.id !== groomingId);
+      await saveDailyRoutine(routine);
+    }
+  } catch (error) {
+    console.error('Error deleting grooming routine:', error);
+    throw error;
   }
 };
 
-// Diary Entries functions
-export const saveDiaryEntries = async (entries: DiaryEntry[]): Promise<void> => {
-  return saveData(STORAGE_KEYS.DIARY_ENTRIES, entries);
-};
-
+// Diary Entry functions
 export const loadDiaryEntries = async (): Promise<DiaryEntry[]> => {
   try {
-    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.DIARY_ENTRIES);
-    if (jsonData) {
-      const data = JSON.parse(jsonData);
-      // Convert date strings back to Date objects
-      const entries = data.map((entry: any) => ({
-        ...entry,
-        date: new Date(entry.date),
-      }));
-      console.log('Loaded diary entries data successfully with date conversion');
-      return entries;
-    }
-    return [];
+    const entriesString = await AsyncStorage.getItem(STORAGE_KEYS.DIARY_ENTRIES);
+    if (!entriesString) return [];
+
+    const entries = JSON.parse(entriesString) as DiaryEntry[];
+    return entries.map(entry => ({
+      ...entry,
+      date: new Date(entry.date),
+    }));
   } catch (error) {
-    console.error('Error loading diary entries data:', error);
+    console.error('Error loading diary entries:', error);
     return [];
   }
-};
-
-export const getDiaryEntriesByPetId = async (petId: string): Promise<DiaryEntry[]> => {
-  const entries = await loadDiaryEntries();
-  return entries.filter(e => e.petId === petId);
 };
 
 export const saveDiaryEntry = async (entry: DiaryEntry): Promise<void> => {
-  const entries = await loadDiaryEntries();
-  const existingIndex = entries.findIndex(e => e.id === entry.id);
-  
-  if (existingIndex >= 0) {
-    entries[existingIndex] = entry;
-  } else {
-    entries.push(entry);
-  }
-  
-  return saveDiaryEntries(entries);
-};
-
-// Reminders functions
-export const saveReminders = async (reminders: Reminder[]): Promise<void> => {
-  return saveData(STORAGE_KEYS.REMINDERS, reminders);
-};
-
-export const loadReminders = async (): Promise<Reminder[]> => {
   try {
-    const jsonData = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
-    if (jsonData) {
-      const data = JSON.parse(jsonData);
-      // Convert date strings back to Date objects
-      const reminders = data.map((reminder: any) => ({
+    const entries = await loadDiaryEntries();
+    const existingIndex = entries.findIndex(e => e.id === entry.id);
+    
+    if (existingIndex >= 0) {
+      entries[existingIndex] = entry;
+    } else {
+      entries.push(entry);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.DIARY_ENTRIES, JSON.stringify(entries));
+  } catch (error) {
+    console.error('Error saving diary entry:', error);
+    throw error;
+  }
+};
+
+export const deleteDiaryEntry = async (entryId: string): Promise<void> => {
+  try {
+    const entries = await loadDiaryEntries();
+    const filteredEntries = entries.filter(e => e.id !== entryId);
+    await AsyncStorage.setItem(STORAGE_KEYS.DIARY_ENTRIES, JSON.stringify(filteredEntries));
+  } catch (error) {
+    console.error('Error deleting diary entry:', error);
+    throw error;
+  }
+};
+
+// Reminder functions
+export const getUpcomingReminders = async (): Promise<Reminder[]> => {
+  try {
+    const remindersString = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
+    if (!remindersString) return [];
+
+    const reminders = JSON.parse(remindersString) as Reminder[];
+    const now = new Date();
+    
+    return reminders
+      .map(reminder => ({
         ...reminder,
         date: new Date(reminder.date),
-      }));
-      console.log('Loaded reminders data successfully with date conversion');
-      return reminders;
-    }
-    return [];
+      }))
+      .filter(reminder => !reminder.completed && reminder.date >= now)
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .slice(0, 5); // Return only next 5 reminders
   } catch (error) {
-    console.error('Error loading reminders data:', error);
+    console.error('Error loading reminders:', error);
     return [];
   }
 };
 
-export const getUpcomingReminders = async (): Promise<Reminder[]> => {
-  const reminders = await loadReminders();
-  const now = new Date();
-  const upcoming = reminders.filter(r => {
-    const reminderDate = new Date(r.date);
-    return reminderDate >= now && !r.completed;
-  });
-  return upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-};
-
-// Clear all data (for testing purposes)
-export const clearAllData = async (): Promise<void> => {
+export const saveReminder = async (reminder: Reminder): Promise<void> => {
   try {
-    await AsyncStorage.multiRemove(Object.values(STORAGE_KEYS));
-    console.log('All data cleared successfully');
+    const remindersString = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
+    const reminders = remindersString ? JSON.parse(remindersString) as Reminder[] : [];
+    
+    const existingIndex = reminders.findIndex(r => r.id === reminder.id);
+    
+    if (existingIndex >= 0) {
+      reminders[existingIndex] = reminder;
+    } else {
+      reminders.push(reminder);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify(reminders));
   } catch (error) {
-    console.error('Error clearing data:', error);
+    console.error('Error saving reminder:', error);
     throw error;
   }
 };

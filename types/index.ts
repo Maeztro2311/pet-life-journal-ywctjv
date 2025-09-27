@@ -65,6 +65,8 @@ export interface FeedingSchedule {
   foodType: string;
   portionSize: string;
   notes?: string;
+  notificationId?: string;
+  reminderEnabled?: boolean;
 }
 
 export interface Activity {
@@ -74,6 +76,9 @@ export interface Activity {
   duration?: number;
   description?: string;
   favoriteToys?: string[];
+  notificationId?: string;
+  reminderEnabled?: boolean;
+  reminderTime?: Date;
 }
 
 export interface GroomingRoutine {
@@ -83,6 +88,8 @@ export interface GroomingRoutine {
   lastDone?: Date;
   nextDue?: Date;
   notes?: string;
+  notificationId?: string;
+  reminderEnabled?: boolean;
 }
 
 export interface DiaryEntry {

@@ -172,6 +172,7 @@ export default function DiaryScreen() {
                     key={entry.id}
                     style={[commonStyles.card, { marginBottom: 12 }]}
                     onPress={() => navigateToEntry(entry.id)}
+                    activeOpacity={0.7}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
                       <View style={{
@@ -237,26 +238,6 @@ export default function DiaryScreen() {
           </View>
         )}
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={commonStyles.bottomNav}>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/')}>
-          <Icon name="home" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/pets')}>
-          <Icon name="paw" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Pets</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem}>
-          <Icon name="book" size={24} color={colors.primary} />
-          <Text style={commonStyles.navTextActive}>Diary</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/settings')}>
-          <Icon name="settings" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
