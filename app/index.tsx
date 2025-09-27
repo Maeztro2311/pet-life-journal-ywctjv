@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import Icon from '../components/Icon';
 import { commonStyles, colors } from '../styles/commonStyles';
-import { loadPets, getUpcomingReminders } from '../utils/storage';
+import { loadPets, getUpcomingReminders, getDailyRoutineByPetId } from '../utils/storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Pet, Reminder } from '../types';
+import { Pet, Reminder, DailyRoutine } from '../types';
 import { useRouter } from 'expo-router';
 import EnhancedButton from '../components/EnhancedButton';
 
@@ -13,6 +13,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [activeReminders, setActiveReminders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,6 +30,43 @@ export default function HomeScreen() {
       
       setPets(petsData);
       setReminders(remindersData.slice(0, 3)); // Show only first 3 reminders
+
+      // Load active feeding reminders from all pets
+      const allActiveReminders = [];
+      for (const pet of petsData) {
+        const routine = await getDailyRoutineByPetId(pet.id);
+        if (routine && routine.feedingSchedule) {
+          const enabledFeedings = routine.feedingSchedule.filter(f => f.reminderEnabled);
+          for (const feeding of enabledFeedings) {
+            allActiveReminders.push({
+              id: `feeding-${feeding.id}`,
+              title: `Feeding Time for ${pet.name}`,
+              description: `${feeding.foodType} - ${feeding.portionSize}`,
+              time: feeding.time,
+              type: 'feeding',
+              petName: pet.name
+            });
+          }
+        }
+        
+        if (routine && routine.groomingRoutine) {
+          const enabledGrooming = routine.groomingRoutine.filter(g => g.reminderEnabled && g.nextDue);
+          for (const grooming of enabledGrooming) {
+            if (grooming.nextDue && grooming.nextDue > new Date()) {
+              allActiveReminders.push({
+                id: `grooming-${grooming.id}`,
+                title: `Grooming for ${pet.name}`,
+                description: `${grooming.type} - Due ${grooming.nextDue.toLocaleDateString()}`,
+                time: grooming.nextDue.toLocaleDateString(),
+                type: 'grooming',
+                petName: pet.name
+              });
+            }
+          }
+        }
+      }
+      
+      setActiveReminders(allActiveReminders.slice(0, 5));
       console.log('Home data loaded successfully');
     } catch (error) {
       console.error('Error loading home data:', error);
@@ -104,10 +142,10 @@ export default function HomeScreen() {
             <View style={[commonStyles.card, { flex: 1, alignItems: 'center', paddingVertical: 20 }]}>
               <Icon name="notifications" size={24} color={colors.accent} />
               <Text style={[commonStyles.subtitle, { fontSize: 18, marginTop: 8, marginBottom: 4 }]}>
-                {reminders.length}
+                {activeReminders.length}
               </Text>
               <Text style={commonStyles.textLight}>
-                Reminders
+                Active Reminders
               </Text>
             </View>
           </View>
@@ -230,35 +268,42 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Upcoming Reminders */}
-        {reminders.length > 0 && (
+        {/* Active Reminders */}
+        {activeReminders.length > 0 && (
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <Text style={commonStyles.subtitle}>Upcoming Reminders</Text>
+              <Text style={commonStyles.subtitle}>Active Reminders</Text>
               <TouchableOpacity onPress={navigateToReminders}>
                 <Text style={[commonStyles.textLight, { fontSize: 14 }]}>View All</Text>
               </TouchableOpacity>
             </View>
 
-            {reminders.map((reminder) => (
+            {activeReminders.map((reminder) => (
               <View key={reminder.id} style={[commonStyles.card, { marginBottom: 8, flexDirection: 'row', alignItems: 'center' }]}>
                 <View style={{
                   width: 40,
                   height: 40,
                   borderRadius: 20,
-                  backgroundColor: colors.warning,
+                  backgroundColor: reminder.type === 'feeding' ? colors.primary : colors.accent,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginRight: 12
                 }}>
-                  <Icon name="notifications" size={20} color={colors.text} />
+                  <Icon 
+                    name={reminder.type === 'feeding' ? "restaurant" : "cut"} 
+                    size={20} 
+                    color={colors.text} 
+                  />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 2 }]}>
                     {reminder.title}
                   </Text>
                   <Text style={commonStyles.textLight}>
-                    {new Date(reminder.date).toLocaleDateString()}
+                    {reminder.description}
+                  </Text>
+                  <Text style={[commonStyles.textLight, { fontSize: 12, marginTop: 2 }]}>
+                    {reminder.time}
                   </Text>
                 </View>
               </View>

@@ -55,10 +55,44 @@ export const savePet = async (pet: Pet): Promise<void> => {
 
 export const deletePet = async (petId: string): Promise<void> => {
   try {
+    // Delete pet from pets list
     const pets = await loadPets();
     const filteredPets = pets.filter(p => p.id !== petId);
     await AsyncStorage.setItem(STORAGE_KEYS.PETS, JSON.stringify(filteredPets));
-    console.log('Pet deleted successfully:', petId);
+
+    // Delete associated biography
+    const biographiesString = await AsyncStorage.getItem(STORAGE_KEYS.BIOGRAPHIES);
+    if (biographiesString) {
+      const biographies = JSON.parse(biographiesString) as Biography[];
+      const filteredBiographies = biographies.filter(b => b.petId !== petId);
+      await AsyncStorage.setItem(STORAGE_KEYS.BIOGRAPHIES, JSON.stringify(filteredBiographies));
+    }
+
+    // Delete associated daily routine
+    const routinesString = await AsyncStorage.getItem(STORAGE_KEYS.DAILY_ROUTINES);
+    if (routinesString) {
+      const routines = JSON.parse(routinesString) as DailyRoutine[];
+      const filteredRoutines = routines.filter(r => r.petId !== petId);
+      await AsyncStorage.setItem(STORAGE_KEYS.DAILY_ROUTINES, JSON.stringify(filteredRoutines));
+    }
+
+    // Delete associated diary entries
+    const entriesString = await AsyncStorage.getItem(STORAGE_KEYS.DIARY_ENTRIES);
+    if (entriesString) {
+      const entries = JSON.parse(entriesString) as DiaryEntry[];
+      const filteredEntries = entries.filter(e => e.petId !== petId);
+      await AsyncStorage.setItem(STORAGE_KEYS.DIARY_ENTRIES, JSON.stringify(filteredEntries));
+    }
+
+    // Delete associated reminders
+    const remindersString = await AsyncStorage.getItem(STORAGE_KEYS.REMINDERS);
+    if (remindersString) {
+      const reminders = JSON.parse(remindersString) as Reminder[];
+      const filteredReminders = reminders.filter(r => r.petId !== petId);
+      await AsyncStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify(filteredReminders));
+    }
+
+    console.log('Pet and all associated data deleted successfully:', petId);
   } catch (error) {
     console.error('Error deleting pet:', error);
     throw new Error('Failed to delete pet');

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import Icon from '../../components/Icon';
 import { Pet, Biography } from '../../types';
-import { loadPets, getBiographyByPetId } from '../../utils/storage';
+import { loadPets, getBiographyByPetId, deletePet } from '../../utils/storage';
 import PetIdentityTab from '../../components/PetIdentityTab';
 import PetBiographyTab from '../../components/PetBiographyTab';
 import PetRoutineTab from '../../components/PetRoutineTab';
@@ -54,6 +54,33 @@ export default function PetProfileScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeletePet = () => {
+    if (!pet) return;
+
+    Alert.alert(
+      'Remove Pet',
+      `Are you sure you want to remove ${pet.name}? This action cannot be undone and will delete all associated data including diary entries, routines, and health records.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePet(pet.id);
+              Alert.alert('Success', `${pet.name} has been removed`, [
+                { text: 'OK', onPress: () => router.replace('/pets') }
+              ]);
+            } catch (error) {
+              console.error('Error deleting pet:', error);
+              Alert.alert('Error', 'Failed to remove pet');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const tabs = [
@@ -122,6 +149,27 @@ export default function PetProfileScreen() {
             {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
           </Text>
         </View>
+        
+        {/* Menu Button */}
+        <TouchableOpacity 
+          onPress={() => {
+            Alert.alert(
+              'Pet Options',
+              `Options for ${pet.name}`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Remove Pet',
+                  style: 'destructive',
+                  onPress: handleDeletePet
+                }
+              ]
+            );
+          }}
+          style={{ marginRight: 12 }}
+        >
+          <Icon name="ellipsis-vertical" size={24} color={colors.text} />
+        </TouchableOpacity>
         
         {/* Profile Image or Default Icon */}
         <View style={{

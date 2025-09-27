@@ -5,6 +5,7 @@ import { commonStyles, colors } from '../../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Icon from '../../components/Icon';
+import { requestNotificationPermissions } from '../../utils/notifications';
 
 // Add clearAllData function to storage utils
 const clearAllData = async (): Promise<void> => {
@@ -44,6 +45,37 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleNotificationSettings = async () => {
+    try {
+      const hasPermission = await requestNotificationPermissions();
+      if (hasPermission) {
+        Alert.alert(
+          'Notifications Enabled',
+          'You will receive reminders for feeding schedules, grooming, and other pet care activities.',
+          [{ text: 'OK' }]
+        );
+      } else {
+        Alert.alert(
+          'Notifications Disabled',
+          'Please enable notifications in your device settings to receive pet care reminders.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { 
+              text: 'Open Settings', 
+              onPress: () => {
+                // This would open device settings on a real device
+                Alert.alert('Info', 'Please go to Settings > Notifications > MyPets to enable notifications');
+              }
+            }
+          ]
+        );
+      }
+    } catch (error) {
+      console.error('Error handling notification settings:', error);
+      Alert.alert('Error', 'Failed to check notification permissions');
+    }
+  };
+
   const settingsItems = [
     {
       id: 'backup',
@@ -57,7 +89,7 @@ export default function SettingsScreen() {
       title: 'Notifications',
       subtitle: 'Manage reminders and alerts',
       icon: 'notifications',
-      onPress: () => Alert.alert('Coming Soon', 'Notification settings will be available in a future update'),
+      onPress: handleNotificationSettings,
     },
     {
       id: 'export',
@@ -122,6 +154,7 @@ export default function SettingsScreen() {
               key={item.id}
               style={[commonStyles.card, { marginBottom: 12 }]}
               onPress={item.onPress}
+              activeOpacity={0.7}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <View style={{

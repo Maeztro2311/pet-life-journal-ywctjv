@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Text, View, TextInput, TouchableOpacity, Alert, Modal } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, Alert, Modal, Switch } from 'react-native';
 import { commonStyles, colors } from '../styles/commonStyles';
 import { FeedingSchedule } from '../types';
 import Icon from './Icon';
@@ -18,6 +18,7 @@ export default function FeedingScheduleForm({ isVisible, onClose, onSave, initia
   const [foodType, setFoodType] = useState(initialData?.foodType || '');
   const [portionSize, setPortionSize] = useState(initialData?.portionSize || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
+  const [reminderEnabled, setReminderEnabled] = useState(initialData?.reminderEnabled || false);
 
   const handleSave = () => {
     if (!time.trim() || !foodType.trim() || !portionSize.trim()) {
@@ -31,6 +32,8 @@ export default function FeedingScheduleForm({ isVisible, onClose, onSave, initia
       foodType: foodType.trim(),
       portionSize: portionSize.trim(),
       notes: notes.trim() || undefined,
+      reminderEnabled,
+      notificationId: initialData?.notificationId,
     };
 
     onSave(feeding);
@@ -42,6 +45,7 @@ export default function FeedingScheduleForm({ isVisible, onClose, onSave, initia
     setFoodType(initialData?.foodType || '');
     setPortionSize(initialData?.portionSize || '');
     setNotes(initialData?.notes || '');
+    setReminderEnabled(initialData?.reminderEnabled || false);
     onClose();
   };
 
@@ -113,6 +117,32 @@ export default function FeedingScheduleForm({ isVisible, onClose, onSave, initia
               placeholder="Additional notes..."
               placeholderTextColor={colors.textLight}
               multiline
+            />
+          </View>
+
+          <View style={{ 
+            flexDirection: 'row', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            marginBottom: 30,
+            paddingVertical: 16,
+            paddingHorizontal: 16,
+            backgroundColor: colors.card,
+            borderRadius: 12,
+          }}>
+            <View style={{ flex: 1 }}>
+              <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 4 }]}>
+                Enable Reminder
+              </Text>
+              <Text style={[commonStyles.textLight, { fontSize: 14 }]}>
+                Get notified at feeding time
+              </Text>
+            </View>
+            <Switch
+              value={reminderEnabled}
+              onValueChange={setReminderEnabled}
+              trackColor={{ false: colors.textLight, true: colors.primary }}
+              thumbColor={colors.card}
             />
           </View>
 
