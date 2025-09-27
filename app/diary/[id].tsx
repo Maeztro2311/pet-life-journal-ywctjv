@@ -105,9 +105,9 @@ export default function DiaryEntryDetailScreen() {
   };
 
   const handleEdit = () => {
-    // Navigate to edit page (would need to be implemented)
-    console.log('Edit functionality not implemented yet');
-    Alert.alert('Coming Soon', 'Edit functionality will be available in a future update');
+    if (entry) {
+      router.push(`/diary/edit/${entry.id}` as any);
+    }
   };
 
   if (loading) {

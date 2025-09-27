@@ -1,34 +1,37 @@
+
 {
   "expo": {
-    "name": "Natively",
-    "slug": "Natively",
+    "name": "My Pets Diary",
+    "slug": "my-pets-diary",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/natively-dark.png",
-    "userInterfaceStyle": "dark",
+    "icon": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/natively-dark.png",
+      "image": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
       "resizeMode": "contain",
-      "backgroundColor": "#000000"
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.Natively",
+      "bundleIdentifier": "com.anonymous.mypetsdiary",
+      "icon": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/natively-dark.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
+        "backgroundColor": "#ffffff"
       },
+      "icon": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.Natively"
+      "package": "com.anonymous.mypetsdiary"
     },
     "web": {
-      "favicon": "./assets/images/final_quest_240x240.png",
+      "favicon": "./assets/images/adbfa53a-69f2-4c1c-b2ce-510d44dbdaad.png",
       "bundler": "metro"
     },
     "plugins": [
@@ -36,7 +39,7 @@
       "expo-router",
       "expo-web-browser"
     ],
-    "scheme": "natively",
+    "scheme": "my-pets-diary",
     "experiments": {
       "typedRoutes": true
     },

@@ -5,7 +5,18 @@ import { commonStyles, colors } from '../../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Icon from '../../components/Icon';
-import { clearAllData } from '../../utils/storage';
+
+// Add clearAllData function to storage utils
+const clearAllData = async (): Promise<void> => {
+  try {
+    const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+    await AsyncStorage.clear();
+    console.log('All data cleared successfully');
+  } catch (error) {
+    console.error('Error clearing data:', error);
+    throw new Error('Failed to clear data');
+  }
+};
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -151,26 +162,6 @@ export default function SettingsScreen() {
           </View>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={commonStyles.bottomNav}>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/')}>
-          <Icon name="home" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/pets')}>
-          <Icon name="paw" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Pets</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/diary')}>
-          <Icon name="book" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Diary</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem}>
-          <Icon name="settings" size={24} color={colors.primary} />
-          <Text style={commonStyles.navTextActive}>Settings</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }

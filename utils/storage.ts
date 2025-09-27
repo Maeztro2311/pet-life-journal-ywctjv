@@ -388,3 +388,14 @@ export const saveReminder = async (reminder: Reminder): Promise<void> => {
     throw new Error('Failed to save reminder');
   }
 };
+
+// Clear all data function
+export const clearAllData = async (): Promise<void> => {
+  try {
+    await AsyncStorage.clear();
+    console.log('All data cleared successfully');
+  } catch (error) {
+    console.error('Error clearing data:', error);
+    throw new Error('Failed to clear data');
+  }
+};
