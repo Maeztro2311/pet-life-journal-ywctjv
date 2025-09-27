@@ -15,19 +15,18 @@ interface HealthControlProps {
 }
 
 const HEALTH_TYPES = [
-  { value: 'vaccination', label: 'Vaccination', icon: '💉' },
-  { value: 'checkup', label: 'Regular Checkup', icon: '🏥' },
-  { value: 'medicine', label: 'Medicine', icon: '💊' },
-  { value: 'deworming', label: 'Deworming', icon: '🐛' },
-  { value: 'grooming', label: 'Professional Grooming', icon: '✂️' },
+  { value: 'vaccination', label: 'Vaccination', icon: 'medical', color: colors.error },
+  { value: 'checkup', label: 'Regular Checkup', icon: 'heart', color: colors.accent },
+  { value: 'medicine', label: 'Medicine', icon: 'medical-bag', color: colors.purple },
+  { value: 'deworming', label: 'Deworming', icon: 'bug', color: colors.yellow },
+  { value: 'grooming', label: 'Professional Grooming', icon: 'cut', color: colors.secondary },
 ];
 
 const FREQUENCY_OPTIONS = [
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'quarterly', label: 'Every 3 Months' },
-  { value: 'yearly', label: 'Yearly' },
-  { value: 'custom', label: 'Custom' },
+  'Daily',
+  'Weekly',
+  'Monthly',
+  'Annually',
 ];
 
 export default function HealthControl({ pet }: HealthControlProps) {
@@ -40,7 +39,7 @@ export default function HealthControl({ pet }: HealthControlProps) {
   const [formData, setFormData] = useState({
     type: 'vaccination' as HealthSchedule['type'],
     name: '',
-    frequency: 'monthly' as HealthSchedule['frequency'],
+    frequency: 'Monthly' as HealthSchedule['frequency'],
     lastDone: new Date(),
     nextDue: new Date(),
     reminderEnabled: true,
@@ -49,6 +48,7 @@ export default function HealthControl({ pet }: HealthControlProps) {
 
   const [showLastDonePicker, setShowLastDonePicker] = useState(false);
   const [showNextDuePicker, setShowNextDuePicker] = useState(false);
+  const [showFrequencyPicker, setShowFrequencyPicker] = useState(false);
 
   useEffect(() => {
     loadHealthSchedules();
@@ -75,7 +75,7 @@ export default function HealthControl({ pet }: HealthControlProps) {
     setFormData({
       type: 'vaccination',
       name: '',
-      frequency: 'monthly',
+      frequency: 'Monthly',
       lastDone: new Date(),
       nextDue: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
       reminderEnabled: true,
@@ -178,17 +178,17 @@ export default function HealthControl({ pet }: HealthControlProps) {
   const calculateNextDue = (lastDone: Date, frequency: string): Date => {
     const nextDue = new Date(lastDone);
     
-    switch (frequency) {
+    switch (frequency.toLowerCase()) {
+      case 'daily':
+        nextDue.setDate(nextDue.getDate() + 1);
+        break;
       case 'weekly':
         nextDue.setDate(nextDue.getDate() + 7);
         break;
       case 'monthly':
         nextDue.setMonth(nextDue.getMonth() + 1);
         break;
-      case 'quarterly':
-        nextDue.setMonth(nextDue.getMonth() + 3);
-        break;
-      case 'yearly':
+      case 'annually':
         nextDue.setFullYear(nextDue.getFullYear() + 1);
         break;
       default:
@@ -220,9 +220,8 @@ export default function HealthControl({ pet }: HealthControlProps) {
     }
   };
 
-  const getTypeIcon = (type: string) => {
-    const healthType = HEALTH_TYPES.find(t => t.value === type);
-    return healthType?.icon || '🏥';
+  const getTypeInfo = (type: string) => {
+    return HEALTH_TYPES.find(t => t.value === type) || HEALTH_TYPES[0];
   };
 
   const isOverdue = (nextDue?: Date) => {
@@ -248,9 +247,10 @@ export default function HealthControl({ pet }: HealthControlProps) {
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border
+        borderBottomColor: colors.border,
+        backgroundColor: colors.card,
       }}>
-        <Text style={commonStyles.title}>Health Control</Text>
+        <Text style={[commonStyles.title, { fontWeight: '700' }]}>Health Control</Text>
         <EnhancedButton
           text="Add Schedule"
           onPress={handleAddSchedule}
@@ -261,12 +261,12 @@ export default function HealthControl({ pet }: HealthControlProps) {
       </View>
 
       {schedules.length === 0 ? (
-        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+        <View style={[commonStyles.content, { justifyContent: 'center', alignItems: 'center' }]}>
           <Icon name="medical" size={64} color={colors.textLight} />
-          <Text style={[commonStyles.subtitle, { marginTop: 20, marginBottom: 8 }]}>
+          <Text style={[commonStyles.subtitle, { marginTop: 20, marginBottom: 8, textAlign: 'center' }]}>
             No health schedules yet
           </Text>
-          <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32 }]}>
+          <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32, paddingHorizontal: 40 }]}>
             Add health schedules to track vaccinations, checkups, and medical care for {pet.name}
           </Text>
           <EnhancedButton
@@ -280,87 +280,116 @@ export default function HealthControl({ pet }: HealthControlProps) {
       ) : (
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={{ padding: 20 }}>
-            {schedules.map((schedule) => (
-              <View key={schedule.id} style={[commonStyles.card, {
-                borderLeftWidth: 4,
-                borderLeftColor: isOverdue(schedule.nextDue) ? colors.error : colors.success,
-              }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                  <Text style={{ fontSize: 24, marginRight: 12 }}>
-                    {getTypeIcon(schedule.type)}
-                  </Text>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
-                      {schedule.name}
-                    </Text>
-                    <Text style={commonStyles.textLight}>
-                      {HEALTH_TYPES.find(t => t.value === schedule.type)?.label}
-                    </Text>
+            {schedules.map((schedule) => {
+              const typeInfo = getTypeInfo(schedule.type);
+              return (
+                <View key={schedule.id} style={[
+                  commonStyles.card, 
+                  {
+                    borderLeftWidth: 4,
+                    borderLeftColor: isOverdue(schedule.nextDue) ? colors.error : typeInfo.color,
+                    marginBottom: 16,
+                  }
+                ]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 }}>
+                    <View style={{
+                      backgroundColor: typeInfo.color,
+                      padding: 8,
+                      borderRadius: 8,
+                      marginRight: 12,
+                    }}>
+                      <Icon name={typeInfo.icon} size={20} color={colors.white} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[commonStyles.subtitle, { marginBottom: 4, fontWeight: '600' }]}>
+                        {schedule.name}
+                      </Text>
+                      <Text style={[commonStyles.textLight, { fontSize: 14 }]}>
+                        {typeInfo.label}
+                      </Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      {schedule.reminderEnabled && (
+                        <Icon name="notifications" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+                      )}
+                      <TouchableOpacity
+                        onPress={() => handleEditSchedule(schedule)}
+                        style={{ marginRight: 8, padding: 4 }}
+                      >
+                        <Icon name="create" size={20} color={colors.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => handleDeleteSchedule(schedule)}
+                        style={{ padding: 4 }}
+                      >
+                        <Icon name="trash" size={20} color={colors.error} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    {schedule.reminderEnabled && (
-                      <Icon name="notifications" size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                    )}
-                    <TouchableOpacity
-                      onPress={() => handleEditSchedule(schedule)}
-                      style={{ marginRight: 8 }}
-                    >
-                      <Icon name="create" size={20} color={colors.primary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDeleteSchedule(schedule)}>
-                      <Icon name="trash" size={20} color={colors.error} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
 
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <View style={{ flex: 1, marginRight: 16 }}>
-                    <Text style={[commonStyles.textLight, { fontSize: 12, marginBottom: 2 }]}>
-                      Last Done
-                    </Text>
-                    <Text style={commonStyles.text}>
-                      {schedule.lastDone ? schedule.lastDone.toLocaleDateString() : 'Not set'}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[commonStyles.textLight, { fontSize: 12, marginBottom: 2 }]}>
-                      Next Due
-                    </Text>
-                    <Text style={[
-                      commonStyles.text,
-                      { color: isOverdue(schedule.nextDue) ? colors.error : colors.text }
-                    ]}>
-                      {schedule.nextDue ? schedule.nextDue.toLocaleDateString() : 'Not set'}
-                    </Text>
-                  </View>
-                </View>
-
-                <Text style={[commonStyles.textLight, { fontSize: 12, marginBottom: 4 }]}>
-                  Frequency: {FREQUENCY_OPTIONS.find(f => f.value === schedule.frequency)?.label}
-                </Text>
-
-                {schedule.notes && (
-                  <Text style={[commonStyles.textLight, { fontSize: 12, fontStyle: 'italic' }]}>
-                    {schedule.notes}
-                  </Text>
-                )}
-
-                {isOverdue(schedule.nextDue) && (
-                  <View style={{
-                    backgroundColor: colors.error,
-                    paddingHorizontal: 8,
-                    paddingVertical: 4,
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    justifyContent: 'space-between', 
+                    marginBottom: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    backgroundColor: colors.surface,
                     borderRadius: 8,
-                    marginTop: 8,
-                    alignSelf: 'flex-start',
                   }}>
-                    <Text style={{ color: colors.card, fontSize: 12, fontWeight: '600' }}>
-                      OVERDUE
+                    <View style={{ flex: 1, marginRight: 16 }}>
+                      <Text style={[commonStyles.textLight, { fontSize: 12, marginBottom: 4, fontWeight: '600' }]}>
+                        Last Done
+                      </Text>
+                      <Text style={[commonStyles.text, { fontSize: 14 }]}>
+                        {schedule.lastDone ? schedule.lastDone.toLocaleDateString() : 'Not set'}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[commonStyles.textLight, { fontSize: 12, marginBottom: 4, fontWeight: '600' }]}>
+                        Next Due
+                      </Text>
+                      <Text style={[
+                        commonStyles.text,
+                        { 
+                          fontSize: 14,
+                          color: isOverdue(schedule.nextDue) ? colors.error : colors.text,
+                          fontWeight: isOverdue(schedule.nextDue) ? '600' : '400',
+                        }
+                      ]}>
+                        {schedule.nextDue ? schedule.nextDue.toLocaleDateString() : 'Not set'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <Icon name="repeat" size={14} color={colors.textLight} style={{ marginRight: 6 }} />
+                    <Text style={[commonStyles.textLight, { fontSize: 12 }]}>
+                      Frequency: {schedule.frequency}
                     </Text>
                   </View>
-                )}
-              </View>
-            ))}
+
+                  {schedule.notes && (
+                    <Text style={[commonStyles.textLight, { fontSize: 12, fontStyle: 'italic', marginBottom: 8 }]}>
+                      {schedule.notes}
+                    </Text>
+                  )}
+
+                  {isOverdue(schedule.nextDue) && (
+                    <View style={{
+                      backgroundColor: colors.error,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      borderRadius: 12,
+                      alignSelf: 'flex-start',
+                    }}>
+                      <Text style={{ color: colors.white, fontSize: 12, fontWeight: '700' }}>
+                        OVERDUE
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              );
+            })}
           </View>
         </ScrollView>
       )}
@@ -384,15 +413,16 @@ export default function HealthControl({ pet }: HealthControlProps) {
               paddingHorizontal: 20,
               paddingVertical: 16,
               borderBottomWidth: 1,
-              borderBottomColor: colors.border
+              borderBottomColor: colors.border,
+              backgroundColor: colors.card,
             }}>
-              <TouchableOpacity onPress={() => setShowForm(false)}>
+              <TouchableOpacity onPress={() => setShowForm(false)} style={{ padding: 4 }}>
                 <Icon name="close" size={24} color={colors.text} />
               </TouchableOpacity>
-              <Text style={commonStyles.subtitle}>
+              <Text style={[commonStyles.subtitle, { fontWeight: '600' }]}>
                 {editingSchedule ? 'Edit Schedule' : 'Add Schedule'}
               </Text>
-              <TouchableOpacity onPress={handleSaveSchedule}>
+              <TouchableOpacity onPress={handleSaveSchedule} style={{ padding: 4 }}>
                 <Text style={[commonStyles.text, { color: colors.primary, fontWeight: '600' }]}>
                   Save
                 </Text>
@@ -402,114 +432,220 @@ export default function HealthControl({ pet }: HealthControlProps) {
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
               <View style={{ padding: 20 }}>
                 {/* Health Type */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Health Type</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                  {HEALTH_TYPES.map((type) => (
-                    <TouchableOpacity
-                      key={type.value}
-                      style={[
-                        commonStyles.card,
-                        {
-                          marginRight: 12,
-                          minWidth: 120,
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Health Type
+                  </Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingRight: 20 }}
+                  >
+                    {HEALTH_TYPES.map((type) => (
+                      <TouchableOpacity
+                        key={type.value}
+                        style={{
                           alignItems: 'center',
-                          backgroundColor: formData.type === type.value ? colors.primary : colors.card,
-                        }
-                      ]}
-                      onPress={() => setFormData(prev => ({ ...prev, type: type.value as any }))}
-                    >
-                      <Text style={{ fontSize: 24, marginBottom: 4 }}>{type.icon}</Text>
-                      <Text style={[
-                        commonStyles.textLight,
-                        { 
+                          backgroundColor: formData.type === type.value ? type.color : colors.card,
+                          paddingHorizontal: 16,
+                          paddingVertical: 12,
+                          borderRadius: 16,
+                          borderWidth: 2,
+                          borderColor: formData.type === type.value ? type.color : colors.border,
+                          marginRight: 12,
+                          minWidth: 100,
+                        }}
+                        onPress={() => setFormData(prev => ({ ...prev, type: type.value as any }))}
+                      >
+                        <Icon 
+                          name={type.icon} 
+                          size={24} 
+                          color={formData.type === type.value ? colors.white : colors.text}
+                          style={{ marginBottom: 4 }}
+                        />
+                        <Text style={{
                           textAlign: 'center',
-                          color: formData.type === type.value ? colors.card : colors.text,
+                          color: formData.type === type.value ? colors.white : colors.text,
                           fontWeight: formData.type === type.value ? '600' : '400',
-                        }
-                      ]}>
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                          fontSize: 12,
+                        }}>
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
                 {/* Name */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Name</Text>
-                <TextInput
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                  placeholder="e.g., Annual Vaccination, Monthly Checkup"
-                  placeholderTextColor={colors.textLight}
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Name *
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+                    placeholder="e.g., Annual Vaccination, Monthly Checkup"
+                    placeholderTextColor={colors.textLight}
+                  />
+                </View>
 
                 {/* Frequency */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Frequency</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                  {FREQUENCY_OPTIONS.map((freq) => (
-                    <TouchableOpacity
-                      key={freq.value}
-                      style={[
-                        commonStyles.card,
-                        {
-                          marginRight: 12,
-                          paddingHorizontal: 16,
-                          backgroundColor: formData.frequency === freq.value ? colors.secondary : colors.card,
-                        }
-                      ]}
-                      onPress={() => {
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          frequency: freq.value as any,
-                          nextDue: calculateNextDue(prev.lastDone, freq.value),
-                        }));
-                      }}
-                    >
-                      <Text style={[
-                        commonStyles.text,
-                        { 
-                          color: formData.frequency === freq.value ? colors.card : colors.text,
-                          fontWeight: formData.frequency === freq.value ? '600' : '400',
-                        }
-                      ]}>
-                        {freq.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Frequency
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      commonStyles.input,
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    onPress={() => setShowFrequencyPicker(!showFrequencyPicker)}
+                  >
+                    <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
+                      {formData.frequency}
+                    </Text>
+                    <Icon name="chevron-down" size={20} color={colors.textLight} />
+                  </TouchableOpacity>
+                  
+                  {showFrequencyPicker && (
+                    <View style={{
+                      backgroundColor: colors.card,
+                      borderRadius: 12,
+                      marginTop: 8,
+                      borderWidth: 2,
+                      borderColor: colors.border,
+                      maxHeight: 200,
+                    }}>
+                      <ScrollView>
+                        {FREQUENCY_OPTIONS.map((option) => (
+                          <TouchableOpacity
+                            key={option}
+                            style={{
+                              paddingVertical: 16,
+                              paddingHorizontal: 20,
+                              borderBottomWidth: 1,
+                              borderBottomColor: colors.border,
+                            }}
+                            onPress={() => {
+                              setFormData(prev => ({ 
+                                ...prev, 
+                                frequency: option as any,
+                                nextDue: calculateNextDue(prev.lastDone, option),
+                              }));
+                              setShowFrequencyPicker(false);
+                            }}
+                          >
+                            <Text style={[
+                              commonStyles.text,
+                              { 
+                                fontWeight: formData.frequency === option ? '600' : '400',
+                                color: formData.frequency === option ? colors.primary : colors.text 
+                              }
+                            ]}>
+                              {option}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </ScrollView>
+                    </View>
+                  )}
+                </View>
 
                 {/* Last Done Date */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Last Done</Text>
-                <TouchableOpacity
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  onPress={() => setShowLastDonePicker(true)}
-                >
-                  <Text style={commonStyles.text}>
-                    {formData.lastDone.toLocaleDateString()}
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Last Done
                   </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      commonStyles.input,
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    onPress={() => setShowLastDonePicker(true)}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Icon name="calendar" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+                      <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
+                        {formData.lastDone.toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Icon name="chevron-down" size={20} color={colors.textLight} />
+                  </TouchableOpacity>
+                </View>
 
                 {/* Next Due Date */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Next Due</Text>
-                <TouchableOpacity
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  onPress={() => setShowNextDuePicker(true)}
-                >
-                  <Text style={commonStyles.text}>
-                    {formData.nextDue.toLocaleDateString()}
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Next Due
                   </Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      commonStyles.input,
+                      {
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    onPress={() => setShowNextDuePicker(true)}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Icon name="calendar" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+                      <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
+                        {formData.nextDue.toLocaleDateString()}
+                      </Text>
+                    </View>
+                    <Icon name="chevron-down" size={20} color={colors.textLight} />
+                  </TouchableOpacity>
+                </View>
 
                 {/* Reminder Toggle */}
-                <View style={[commonStyles.card, { 
-                  flexDirection: 'row', 
-                  alignItems: 'center', 
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: 20 
-                }]}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={commonStyles.text}>Enable Reminder</Text>
-                    <Text style={commonStyles.textLight}>
+                  marginBottom: 24,
+                  paddingVertical: 20,
+                  paddingHorizontal: 20,
+                  backgroundColor: colors.card,
+                  borderRadius: 16,
+                  borderWidth: 2,
+                  borderColor: colors.border,
+                }}>
+                  <View style={{ flex: 1, marginRight: 16 }}>
+                    <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 4, fontSize: 16 }]}>
+                      Enable Reminder
+                    </Text>
+                    <Text style={[commonStyles.textLight, { fontSize: 14, lineHeight: 20 }]}>
                       Get notified when this is due
                     </Text>
                   </View>
@@ -537,14 +673,37 @@ export default function HealthControl({ pet }: HealthControlProps) {
                 </View>
 
                 {/* Notes */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Notes (Optional)</Text>
-                <TextInput
-                  style={[commonStyles.card, { height: 80, textAlignVertical: 'top' }]}
-                  value={formData.notes}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-                  placeholder="Additional notes about this health schedule..."
-                  placeholderTextColor={colors.textLight}
-                  multiline
+                <View style={{ marginBottom: 32 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Notes (Optional)
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        height: 100,
+                        textAlignVertical: 'top',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.notes}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+                    placeholder="Additional notes about this health schedule..."
+                    placeholderTextColor={colors.textLight}
+                    multiline
+                  />
+                </View>
+
+                {/* Save Button */}
+                <EnhancedButton
+                  text={editingSchedule ? 'Update Schedule' : 'Add Schedule'}
+                  onPress={handleSaveSchedule}
+                  variant="primary"
+                  fullWidth
+                  size="large"
                 />
               </View>
             </ScrollView>

@@ -9,11 +9,11 @@ import { Contact } from '../types';
 import { loadContacts, saveContact, deleteContact } from '../utils/storage';
 
 const CONTACT_TYPES = [
-  { value: 'veterinarian', label: 'Veterinarian', icon: '🏥', color: colors.accent },
-  { value: 'emergency', label: 'Emergency Clinic', icon: '🚨', color: colors.error },
-  { value: 'groomer', label: 'Groomer', icon: '✂️', color: colors.secondary },
-  { value: 'sitter', label: 'Pet Sitter', icon: '🏠', color: colors.purple },
-  { value: 'other', label: 'Other', icon: '📞', color: colors.yellow },
+  { value: 'veterinarian', label: 'Veterinarian', icon: 'medical', color: colors.accent },
+  { value: 'groomer', label: 'Groomer', icon: 'cut', color: colors.secondary },
+  { value: 'sitter', label: 'Pet Sitter', icon: 'home', color: colors.purple },
+  { value: 'emergency', label: 'Emergency Clinic', icon: 'warning', color: colors.error },
+  { value: 'other', label: 'Other', icon: 'call', color: colors.yellow },
 ];
 
 export default function ImportantContacts() {
@@ -208,9 +208,10 @@ export default function ImportantContacts() {
         paddingHorizontal: 20,
         paddingVertical: 16,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border
+        borderBottomColor: colors.border,
+        backgroundColor: colors.card,
       }}>
-        <Text style={commonStyles.title}>Important Contacts</Text>
+        <Text style={[commonStyles.title, { fontWeight: '700' }]}>Important Contacts</Text>
         <EnhancedButton
           text="Add Contact"
           onPress={handleAddContact}
@@ -221,12 +222,12 @@ export default function ImportantContacts() {
       </View>
 
       {contacts.length === 0 ? (
-        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+        <View style={[commonStyles.content, { justifyContent: 'center', alignItems: 'center' }]}>
           <Icon name="people" size={64} color={colors.textLight} />
-          <Text style={[commonStyles.subtitle, { marginTop: 20, marginBottom: 8 }]}>
+          <Text style={[commonStyles.subtitle, { marginTop: 20, marginBottom: 8, textAlign: 'center' }]}>
             No contacts yet
           </Text>
-          <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32 }]}>
+          <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32, paddingHorizontal: 40 }]}>
             Add important contacts like veterinarians, groomers, and pet sitters
           </Text>
           <EnhancedButton
@@ -245,28 +246,54 @@ export default function ImportantContacts() {
               if (typeContacts.length === 0) return null;
 
               return (
-                <View key={type.value} style={{ marginBottom: 24 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-                    <Text style={{ fontSize: 20, marginRight: 8 }}>{type.icon}</Text>
-                    <Text style={[commonStyles.subtitle, { color: type.color }]}>
+                <View key={type.value} style={{ marginBottom: 32 }}>
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    marginBottom: 16,
+                    paddingBottom: 8,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.border,
+                  }}>
+                    <View style={{
+                      backgroundColor: type.color,
+                      padding: 8,
+                      borderRadius: 8,
+                      marginRight: 12,
+                    }}>
+                      <Icon name={type.icon} size={20} color={colors.white} />
+                    </View>
+                    <Text style={[commonStyles.subtitle, { color: type.color, fontWeight: '600' }]}>
                       {type.label}
+                    </Text>
+                    <Text style={[commonStyles.textLight, { marginLeft: 8, fontSize: 14 }]}>
+                      ({typeContacts.length})
                     </Text>
                   </View>
 
                   {typeContacts.map((contact) => (
-                    <View key={contact.id} style={[commonStyles.card, {
-                      borderLeftWidth: 4,
-                      borderLeftColor: type.color,
-                      marginBottom: 12,
-                    }]}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+                    <View key={contact.id} style={[
+                      commonStyles.card, 
+                      {
+                        borderLeftWidth: 4,
+                        borderLeftColor: type.color,
+                        marginBottom: 16,
+                      }
+                    ]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 16 }}>
                         <View style={{ flex: 1 }}>
-                          <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>
+                          <Text style={[commonStyles.subtitle, { marginBottom: 4, fontWeight: '600' }]}>
                             {contact.name}
                           </Text>
-                          <Text style={[commonStyles.text, { color: colors.primary }]}>
-                            {contact.phone}
-                          </Text>
+                          <TouchableOpacity 
+                            onPress={() => handleCall(contact.phone)}
+                            style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}
+                          >
+                            <Icon name="call" size={16} color={colors.primary} style={{ marginRight: 8 }} />
+                            <Text style={[commonStyles.text, { color: colors.primary, fontWeight: '500' }]}>
+                              {contact.phone}
+                            </Text>
+                          </TouchableOpacity>
                         </View>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                           <TouchableOpacity
@@ -278,15 +305,18 @@ export default function ImportantContacts() {
                               marginRight: 8,
                             }}
                           >
-                            <Icon name="call" size={16} color={colors.card} />
+                            <Icon name="call" size={16} color={colors.white} />
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={() => handleEditContact(contact)}
-                            style={{ marginRight: 8 }}
+                            style={{ marginRight: 8, padding: 4 }}
                           >
                             <Icon name="create" size={20} color={colors.primary} />
                           </TouchableOpacity>
-                          <TouchableOpacity onPress={() => handleDeleteContact(contact)}>
+                          <TouchableOpacity 
+                            onPress={() => handleDeleteContact(contact)}
+                            style={{ padding: 4 }}
+                          >
                             <Icon name="trash" size={20} color={colors.error} />
                           </TouchableOpacity>
                         </View>
@@ -295,30 +325,49 @@ export default function ImportantContacts() {
                       {contact.email && (
                         <TouchableOpacity
                           onPress={() => handleEmail(contact.email!)}
-                          style={{ marginBottom: 8 }}
+                          style={{ 
+                            flexDirection: 'row', 
+                            alignItems: 'center', 
+                            marginBottom: 8,
+                            paddingVertical: 4,
+                          }}
                         >
+                          <Icon name="mail" size={16} color={colors.accent} style={{ marginRight: 8 }} />
                           <Text style={[commonStyles.textLight, { color: colors.accent }]}>
-                            📧 {contact.email}
+                            {contact.email}
                           </Text>
                         </TouchableOpacity>
                       )}
 
                       {contact.socialMedia && (
-                        <Text style={[commonStyles.textLight, { marginBottom: 8 }]}>
-                          📱 {contact.socialMedia}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                          <Icon name="logo-instagram" size={16} color={colors.purple} style={{ marginRight: 8 }} />
+                          <Text style={[commonStyles.textLight, { color: colors.purple }]}>
+                            {contact.socialMedia}
+                          </Text>
+                        </View>
                       )}
 
                       {contact.address && (
-                        <Text style={[commonStyles.textLight, { marginBottom: 8 }]}>
-                          📍 {contact.address}
-                        </Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginBottom: 8 }}>
+                          <Icon name="location" size={16} color={colors.yellow} style={{ marginRight: 8, marginTop: 2 }} />
+                          <Text style={[commonStyles.textLight, { flex: 1, lineHeight: 20 }]}>
+                            {contact.address}
+                          </Text>
+                        </View>
                       )}
 
                       {contact.notes && (
-                        <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
-                          {contact.notes}
-                        </Text>
+                        <View style={{
+                          backgroundColor: colors.surface,
+                          padding: 12,
+                          borderRadius: 8,
+                          marginTop: 8,
+                        }}>
+                          <Text style={[commonStyles.textLight, { fontStyle: 'italic', fontSize: 14 }]}>
+                            {contact.notes}
+                          </Text>
+                        </View>
                       )}
                     </View>
                   ))}
@@ -348,15 +397,16 @@ export default function ImportantContacts() {
               paddingHorizontal: 20,
               paddingVertical: 16,
               borderBottomWidth: 1,
-              borderBottomColor: colors.border
+              borderBottomColor: colors.border,
+              backgroundColor: colors.card,
             }}>
-              <TouchableOpacity onPress={() => setShowForm(false)}>
+              <TouchableOpacity onPress={() => setShowForm(false)} style={{ padding: 4 }}>
                 <Icon name="close" size={24} color={colors.text} />
               </TouchableOpacity>
-              <Text style={commonStyles.subtitle}>
+              <Text style={[commonStyles.subtitle, { fontWeight: '600' }]}>
                 {editingContact ? 'Edit Contact' : 'Add Contact'}
               </Text>
-              <TouchableOpacity onPress={handleSaveContact}>
+              <TouchableOpacity onPress={handleSaveContact} style={{ padding: 4 }}>
                 <Text style={[commonStyles.text, { color: colors.primary, fontWeight: '600' }]}>
                   Save
                 </Text>
@@ -366,100 +416,198 @@ export default function ImportantContacts() {
             <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
               <View style={{ padding: 20 }}>
                 {/* Contact Type */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Contact Type</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 20 }}>
-                  {CONTACT_TYPES.map((type) => (
-                    <TouchableOpacity
-                      key={type.value}
-                      style={[
-                        commonStyles.card,
-                        {
-                          marginRight: 12,
-                          minWidth: 100,
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Contact Type
+                  </Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingRight: 20 }}
+                  >
+                    {CONTACT_TYPES.map((type) => (
+                      <TouchableOpacity
+                        key={type.value}
+                        style={{
                           alignItems: 'center',
                           backgroundColor: formData.type === type.value ? type.color : colors.card,
-                        }
-                      ]}
-                      onPress={() => setFormData(prev => ({ ...prev, type: type.value as any }))}
-                    >
-                      <Text style={{ fontSize: 24, marginBottom: 4 }}>{type.icon}</Text>
-                      <Text style={[
-                        commonStyles.textLight,
-                        { 
+                          paddingHorizontal: 16,
+                          paddingVertical: 12,
+                          borderRadius: 16,
+                          borderWidth: 2,
+                          borderColor: formData.type === type.value ? type.color : colors.border,
+                          marginRight: 12,
+                          minWidth: 100,
+                        }}
+                        onPress={() => setFormData(prev => ({ ...prev, type: type.value as any }))}
+                      >
+                        <Icon 
+                          name={type.icon} 
+                          size={24} 
+                          color={formData.type === type.value ? colors.white : colors.text}
+                          style={{ marginBottom: 4 }}
+                        />
+                        <Text style={{
                           textAlign: 'center',
-                          color: formData.type === type.value ? colors.card : colors.text,
+                          color: formData.type === type.value ? colors.white : colors.text,
                           fontWeight: formData.type === type.value ? '600' : '400',
-                        }
-                      ]}>
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
+                          fontSize: 12,
+                        }}>
+                          {type.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
 
                 {/* Name */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Name *</Text>
-                <TextInput
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  value={formData.name}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
-                  placeholder="Enter contact name"
-                  placeholderTextColor={colors.textLight}
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Name *
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.name}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+                    placeholder="Enter contact name"
+                    placeholderTextColor={colors.textLight}
+                  />
+                </View>
 
                 {/* Phone */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Phone Number *</Text>
-                <TextInput
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  value={formData.phone}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
-                  placeholder="Enter phone number"
-                  placeholderTextColor={colors.textLight}
-                  keyboardType="phone-pad"
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Phone Number *
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.phone}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
+                    placeholder="Enter phone number"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="phone-pad"
+                  />
+                </View>
 
                 {/* Email */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Email</Text>
-                <TextInput
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  value={formData.email}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
-                  placeholder="Enter email address"
-                  placeholderTextColor={colors.textLight}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Email
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.email}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, email: text }))}
+                    placeholder="Enter email address"
+                    placeholderTextColor={colors.textLight}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
                 {/* Social Media */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Social Media</Text>
-                <TextInput
-                  style={[commonStyles.card, { marginBottom: 20 }]}
-                  value={formData.socialMedia}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, socialMedia: text }))}
-                  placeholder="Instagram, Facebook, etc."
-                  placeholderTextColor={colors.textLight}
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Social Media
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.socialMedia}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, socialMedia: text }))}
+                    placeholder="Instagram, Facebook, etc."
+                    placeholderTextColor={colors.textLight}
+                  />
+                </View>
 
                 {/* Address */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Address</Text>
-                <TextInput
-                  style={[commonStyles.card, { height: 80, textAlignVertical: 'top', marginBottom: 20 }]}
-                  value={formData.address}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
-                  placeholder="Enter full address"
-                  placeholderTextColor={colors.textLight}
-                  multiline
-                />
+                <View style={{ marginBottom: 24 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Address
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        height: 100,
+                        textAlignVertical: 'top',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.address}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, address: text }))}
+                    placeholder="Enter full address"
+                    placeholderTextColor={colors.textLight}
+                    multiline
+                  />
+                </View>
 
                 {/* Notes */}
-                <Text style={[commonStyles.text, { marginBottom: 8 }]}>Notes</Text>
-                <TextInput
-                  style={[commonStyles.card, { height: 80, textAlignVertical: 'top' }]}
-                  value={formData.notes}
-                  onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
-                  placeholder="Additional notes..."
-                  placeholderTextColor={colors.textLight}
-                  multiline
+                <View style={{ marginBottom: 32 }}>
+                  <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                    Notes
+                  </Text>
+                  <TextInput
+                    style={[
+                      commonStyles.input,
+                      {
+                        height: 100,
+                        textAlignVertical: 'top',
+                        paddingVertical: 16,
+                        backgroundColor: colors.card,
+                        borderWidth: 2,
+                        borderColor: colors.border,
+                      }
+                    ]}
+                    value={formData.notes}
+                    onChangeText={(text) => setFormData(prev => ({ ...prev, notes: text }))}
+                    placeholder="Additional notes..."
+                    placeholderTextColor={colors.textLight}
+                    multiline
+                  />
+                </View>
+
+                {/* Save Button */}
+                <EnhancedButton
+                  text={editingContact ? 'Update Contact' : 'Add Contact'}
+                  onPress={handleSaveContact}
+                  variant="primary"
+                  fullWidth
+                  size="large"
                 />
               </View>
             </ScrollView>

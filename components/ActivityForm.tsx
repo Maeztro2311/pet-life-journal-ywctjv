@@ -16,10 +16,10 @@ interface ActivityFormProps {
 }
 
 const ACTIVITY_TYPES = [
-  { value: 'walk', label: 'Walk', icon: 'walk' },
-  { value: 'playtime', label: 'Playtime', icon: 'game-controller' },
-  { value: 'training', label: 'Training', icon: 'school' },
-  { value: 'other', label: 'Other', icon: 'fitness' },
+  { value: 'walk', label: 'Walk', icon: 'walk', color: colors.secondary },
+  { value: 'playtime', label: 'Playtime', icon: 'game-controller', color: colors.accent },
+  { value: 'training', label: 'Training', icon: 'school', color: colors.purple },
+  { value: 'other', label: 'Other', icon: 'fitness', color: colors.yellow },
 ];
 
 export default function ActivityForm({ isVisible, onClose, onSave, initialData }: ActivityFormProps) {
@@ -65,6 +65,10 @@ export default function ActivityForm({ isVisible, onClose, onSave, initialData }
     }
   };
 
+  const getSelectedActivityType = () => {
+    return ACTIVITY_TYPES.find(t => t.value === type) || ACTIVITY_TYPES[0];
+  };
+
   return (
     <Modal
       visible={isVisible}
@@ -73,32 +77,60 @@ export default function ActivityForm({ isVisible, onClose, onSave, initialData }
       onRequestClose={handleClose}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: 20,
+          paddingHorizontal: 20,
+          paddingVertical: 16,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
+          backgroundColor: colors.card,
         }}>
-          <TouchableOpacity onPress={handleClose}>
+          <TouchableOpacity onPress={handleClose} style={{ padding: 4 }}>
             <Icon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[commonStyles.title, { fontSize: 18 }]}>
+          <Text style={[commonStyles.title, { fontSize: 18, fontWeight: '600' }]}>
             {initialData ? 'Edit Activity' : 'Add Activity'}
           </Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 32 }} />
         </View>
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={{ padding: 20 }}>
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Date</Text>
+            {/* Date Picker */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Date
+              </Text>
               <TouchableOpacity
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 onPress={() => setShowDatePicker(true)}
               >
-                <Text style={commonStyles.text}>{date.toLocaleDateString()}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Icon name="calendar" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+                  <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
+                    {date.toLocaleDateString('en-US', { 
+                      weekday: 'short',
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </Text>
+                </View>
+                <Icon name="chevron-down" size={20} color={colors.textLight} />
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
@@ -110,45 +142,66 @@ export default function ActivityForm({ isVisible, onClose, onSave, initialData }
               )}
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Activity Type</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {/* Activity Type */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Activity Type
+              </Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 20 }}
+              >
                 {ACTIVITY_TYPES.map((activityType) => (
                   <TouchableOpacity
                     key={activityType.value}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: type === activityType.value ? colors.primary : colors.surface,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: type === activityType.value ? colors.primary : colors.border,
+                      backgroundColor: type === activityType.value ? activityType.color : colors.card,
+                      paddingHorizontal: 20,
+                      paddingVertical: 12,
+                      borderRadius: 25,
+                      borderWidth: 2,
+                      borderColor: type === activityType.value ? activityType.color : colors.border,
+                      marginRight: 12,
+                      minWidth: 120,
                     }}
                     onPress={() => setType(activityType.value as any)}
                   >
                     <Icon 
                       name={activityType.icon} 
-                      size={16} 
+                      size={18} 
                       color={type === activityType.value ? colors.white : colors.text} 
                       style={{ marginRight: 8 }}
                     />
                     <Text style={{
                       color: type === activityType.value ? colors.white : colors.text,
-                      fontWeight: type === activityType.value ? '600' : '400',
+                      fontWeight: type === activityType.value ? '600' : '500',
+                      fontSize: 14,
                     }}>
                       {activityType.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </ScrollView>
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Duration (minutes)</Text>
+            {/* Duration */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Duration (minutes)
+              </Text>
               <TextInput
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 value={duration}
                 onChangeText={setDuration}
                 placeholder="e.g., 30"
@@ -157,22 +210,46 @@ export default function ActivityForm({ isVisible, onClose, onSave, initialData }
               />
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Description *</Text>
+            {/* Description */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Description *
+              </Text>
               <TextInput
-                style={[commonStyles.input, { height: 80, textAlignVertical: 'top' }]}
+                style={[
+                  commonStyles.input,
+                  {
+                    height: 100,
+                    textAlignVertical: 'top',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 value={description}
                 onChangeText={setDescription}
-                placeholder="Describe the activity..."
+                placeholder="Describe what you did during this activity..."
                 placeholderTextColor={colors.textLight}
                 multiline
               />
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Favorite Toys</Text>
+            {/* Favorite Toys */}
+            <View style={{ marginBottom: 32 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Toys Used
+              </Text>
               <TextInput
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 value={favoriteToys}
                 onChangeText={setFavoriteToys}
                 placeholder="e.g., Ball, Rope toy, Frisbee (comma separated)"
@@ -180,11 +257,13 @@ export default function ActivityForm({ isVisible, onClose, onSave, initialData }
               />
             </View>
 
+            {/* Save Button */}
             <EnhancedButton
               text={initialData ? 'Update Activity' : 'Add Activity'}
               onPress={handleSave}
               variant="primary"
               fullWidth
+              size="large"
             />
           </View>
         </ScrollView>

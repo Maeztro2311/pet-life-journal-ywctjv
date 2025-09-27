@@ -16,22 +16,18 @@ interface GroomingFormProps {
 }
 
 const GROOMING_TYPES = [
-  { value: 'bath', label: 'Bath', icon: 'water' },
-  { value: 'brushing', label: 'Brushing', icon: 'brush' },
-  { value: 'nails', label: 'Nail Trim', icon: 'cut' },
-  { value: 'teeth', label: 'Teeth Cleaning', icon: 'medical' },
-  { value: 'other', label: 'Other', icon: 'sparkles' },
+  { value: 'bath', label: 'Bath', icon: 'water', color: colors.accent },
+  { value: 'brushing', label: 'Brushing', icon: 'brush', color: colors.secondary },
+  { value: 'nails', label: 'Nail Trim', icon: 'cut', color: colors.purple },
+  { value: 'teeth', label: 'Teeth Cleaning', icon: 'medical', color: colors.yellow },
+  { value: 'other', label: 'Other', icon: 'sparkles', color: colors.primary },
 ];
 
 const FREQUENCY_OPTIONS = [
   'Daily',
-  'Every 2 days',
-  'Weekly',
-  'Bi-weekly',
+  'Weekly', 
   'Monthly',
-  'Every 2 months',
-  'Every 3 months',
-  'As needed',
+  'Annually',
 ];
 
 export default function GroomingForm({ isVisible, onClose, onSave, initialData }: GroomingFormProps) {
@@ -81,6 +77,10 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
     }
   };
 
+  const getSelectedGroomingType = () => {
+    return GROOMING_TYPES.find(t => t.value === type) || GROOMING_TYPES[0];
+  };
+
   return (
     <Modal
       visible={isVisible}
@@ -89,76 +89,106 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
       onRequestClose={handleClose}
     >
       <View style={{ flex: 1, backgroundColor: colors.background }}>
+        {/* Header */}
         <View style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
           alignItems: 'center',
-          padding: 20,
+          paddingHorizontal: 20,
+          paddingVertical: 16,
           borderBottomWidth: 1,
           borderBottomColor: colors.border,
+          backgroundColor: colors.card,
         }}>
-          <TouchableOpacity onPress={handleClose}>
+          <TouchableOpacity onPress={handleClose} style={{ padding: 4 }}>
             <Icon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[commonStyles.title, { fontSize: 18 }]}>
+          <Text style={[commonStyles.title, { fontSize: 18, fontWeight: '600' }]}>
             {initialData ? 'Edit Grooming' : 'Add Grooming'}
           </Text>
-          <View style={{ width: 24 }} />
+          <View style={{ width: 32 }} />
         </View>
 
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={{ padding: 20 }}>
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Grooming Type</Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            {/* Grooming Type */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Grooming Type
+              </Text>
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingRight: 20 }}
+              >
                 {GROOMING_TYPES.map((groomingType) => (
                   <TouchableOpacity
                     key={groomingType.value}
                     style={{
                       flexDirection: 'row',
                       alignItems: 'center',
-                      backgroundColor: type === groomingType.value ? colors.purple : colors.surface,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      borderRadius: 20,
-                      borderWidth: 1,
-                      borderColor: type === groomingType.value ? colors.purple : colors.border,
+                      backgroundColor: type === groomingType.value ? groomingType.color : colors.card,
+                      paddingHorizontal: 20,
+                      paddingVertical: 12,
+                      borderRadius: 25,
+                      borderWidth: 2,
+                      borderColor: type === groomingType.value ? groomingType.color : colors.border,
+                      marginRight: 12,
+                      minWidth: 120,
                     }}
                     onPress={() => setType(groomingType.value as any)}
                   >
                     <Icon 
                       name={groomingType.icon} 
-                      size={16} 
+                      size={18} 
                       color={type === groomingType.value ? colors.white : colors.text} 
                       style={{ marginRight: 8 }}
                     />
                     <Text style={{
                       color: type === groomingType.value ? colors.white : colors.text,
-                      fontWeight: type === groomingType.value ? '600' : '400',
+                      fontWeight: type === groomingType.value ? '600' : '500',
+                      fontSize: 14,
                     }}>
                       {groomingType.label}
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </ScrollView>
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Frequency</Text>
+            {/* Frequency */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Frequency
+              </Text>
               <TouchableOpacity
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 onPress={() => setShowFrequencyPicker(!showFrequencyPicker)}
               >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={commonStyles.text}>{frequency}</Text>
-                  <Icon name="chevron-down" size={20} color={colors.textLight} />
-                </View>
+                <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
+                  {frequency}
+                </Text>
+                <Icon name="chevron-down" size={20} color={colors.textLight} />
               </TouchableOpacity>
+              
               {showFrequencyPicker && (
                 <View style={{
-                  backgroundColor: colors.surface,
+                  backgroundColor: colors.card,
                   borderRadius: 12,
                   marginTop: 8,
+                  borderWidth: 2,
+                  borderColor: colors.border,
                   maxHeight: 200,
                 }}>
                   <ScrollView>
@@ -166,7 +196,8 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
                       <TouchableOpacity
                         key={option}
                         style={{
-                          padding: 16,
+                          paddingVertical: 16,
+                          paddingHorizontal: 20,
                           borderBottomWidth: 1,
                           borderBottomColor: colors.border,
                         }}
@@ -177,7 +208,10 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
                       >
                         <Text style={[
                           commonStyles.text,
-                          frequency === option && { color: colors.purple, fontWeight: '600' }
+                          { 
+                            fontWeight: frequency === option ? '600' : '400',
+                            color: frequency === option ? colors.primary : colors.text 
+                          }
                         ]}>
                           {option}
                         </Text>
@@ -188,20 +222,37 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
               )}
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Last Done</Text>
+            {/* Last Done */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Last Done
+              </Text>
               <TouchableOpacity
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 onPress={() => setShowLastDonePicker(true)}
               >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={commonStyles.text}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Icon name="calendar" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+                  <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
                     {lastDone ? lastDone.toLocaleDateString() : 'Not set'}
                   </Text>
-                  <TouchableOpacity onPress={() => setLastDone(null)}>
+                </View>
+                {lastDone && (
+                  <TouchableOpacity onPress={() => setLastDone(null)} style={{ padding: 4 }}>
                     <Icon name="close-circle" size={20} color={colors.textLight} />
                   </TouchableOpacity>
-                </View>
+                )}
               </TouchableOpacity>
               {showLastDonePicker && (
                 <DateTimePicker
@@ -213,20 +264,37 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
               )}
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Next Due</Text>
+            {/* Next Due */}
+            <View style={{ marginBottom: 24 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Next Due
+              </Text>
               <TouchableOpacity
-                style={commonStyles.input}
+                style={[
+                  commonStyles.input,
+                  {
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 onPress={() => setShowNextDuePicker(true)}
               >
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text style={commonStyles.text}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Icon name="calendar" size={20} color={colors.primary} style={{ marginRight: 12 }} />
+                  <Text style={[commonStyles.text, { fontSize: 16, fontWeight: '500' }]}>
                     {nextDue ? nextDue.toLocaleDateString() : 'Not set'}
                   </Text>
-                  <TouchableOpacity onPress={() => setNextDue(null)}>
+                </View>
+                {nextDue && (
+                  <TouchableOpacity onPress={() => setNextDue(null)} style={{ padding: 4 }}>
                     <Icon name="close-circle" size={20} color={colors.textLight} />
                   </TouchableOpacity>
-                </View>
+                )}
               </TouchableOpacity>
               {showNextDuePicker && (
                 <DateTimePicker
@@ -238,23 +306,38 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
               )}
             </View>
 
-            <View style={{ marginBottom: 20 }}>
-              <Text style={[commonStyles.label, { marginBottom: 8 }]}>Notes</Text>
+            {/* Notes */}
+            <View style={{ marginBottom: 32 }}>
+              <Text style={[commonStyles.label, { marginBottom: 12, fontWeight: '600' }]}>
+                Notes
+              </Text>
               <TextInput
-                style={[commonStyles.input, { height: 80, textAlignVertical: 'top' }]}
+                style={[
+                  commonStyles.input,
+                  {
+                    height: 100,
+                    textAlignVertical: 'top',
+                    paddingVertical: 16,
+                    backgroundColor: colors.card,
+                    borderWidth: 2,
+                    borderColor: colors.border,
+                  }
+                ]}
                 value={notes}
                 onChangeText={setNotes}
-                placeholder="Additional notes..."
+                placeholder="Additional grooming notes..."
                 placeholderTextColor={colors.textLight}
                 multiline
               />
             </View>
 
+            {/* Save Button */}
             <EnhancedButton
               text={initialData ? 'Update Grooming' : 'Add Grooming'}
               onPress={handleSave}
               variant="primary"
               fullWidth
+              size="large"
             />
           </View>
         </ScrollView>
