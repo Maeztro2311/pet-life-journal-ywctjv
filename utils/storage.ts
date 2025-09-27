@@ -1,11 +1,12 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Pet, Biography, HealthRecord, GrowthRecord, DailyRoutine, DiaryEntry, Expense, Contact, Memorial, TodoItem, Reminder, FeedingSchedule, Activity, GroomingRoutine } from '../types';
+import { Pet, Biography, HealthRecord, HealthSchedule, GrowthRecord, DailyRoutine, DiaryEntry, Expense, Contact, Memorial, TodoItem, Reminder, FeedingSchedule, Activity, GroomingRoutine } from '../types';
 
 const STORAGE_KEYS = {
   PETS: 'pets',
   BIOGRAPHIES: 'biographies',
   HEALTH_RECORDS: 'health_records',
+  HEALTH_SCHEDULES: 'health_schedules',
   GROWTH_RECORDS: 'growth_records',
   DAILY_ROUTINES: 'daily_routines',
   DIARY_ENTRIES: 'diary_entries',
@@ -131,6 +132,107 @@ export const saveBiography = async (biography: Biography): Promise<void> => {
   } catch (error) {
     console.error('Error saving biography:', error);
     throw new Error('Failed to save biography');
+  }
+};
+
+// Health Schedule functions
+export const getHealthSchedulesByPetId = async (petId: string): Promise<HealthSchedule[]> => {
+  try {
+    const schedulesString = await AsyncStorage.getItem(STORAGE_KEYS.HEALTH_SCHEDULES);
+    if (!schedulesString) return [];
+
+    const schedules = JSON.parse(schedulesString) as HealthSchedule[];
+    return schedules
+      .filter(s => s.petId === petId)
+      .map(schedule => ({
+        ...schedule,
+        lastDone: schedule.lastDone ? new Date(schedule.lastDone) : undefined,
+        nextDue: schedule.nextDue ? new Date(schedule.nextDue) : undefined,
+      }));
+  } catch (error) {
+    console.error('Error loading health schedules:', error);
+    return [];
+  }
+};
+
+export const saveHealthSchedule = async (schedule: HealthSchedule): Promise<void> => {
+  try {
+    const schedulesString = await AsyncStorage.getItem(STORAGE_KEYS.HEALTH_SCHEDULES);
+    const schedules = schedulesString ? JSON.parse(schedulesString) as HealthSchedule[] : [];
+    
+    const existingIndex = schedules.findIndex(s => s.id === schedule.id);
+    
+    if (existingIndex >= 0) {
+      schedules[existingIndex] = schedule;
+    } else {
+      schedules.push(schedule);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.HEALTH_SCHEDULES, JSON.stringify(schedules));
+    console.log('Health schedule saved successfully:', schedule.id);
+  } catch (error) {
+    console.error('Error saving health schedule:', error);
+    throw new Error('Failed to save health schedule');
+  }
+};
+
+export const deleteHealthSchedule = async (scheduleId: string): Promise<void> => {
+  try {
+    const schedulesString = await AsyncStorage.getItem(STORAGE_KEYS.HEALTH_SCHEDULES);
+    if (schedulesString) {
+      const schedules = JSON.parse(schedulesString) as HealthSchedule[];
+      const filteredSchedules = schedules.filter(s => s.id !== scheduleId);
+      await AsyncStorage.setItem(STORAGE_KEYS.HEALTH_SCHEDULES, JSON.stringify(filteredSchedules));
+      console.log('Health schedule deleted successfully:', scheduleId);
+    }
+  } catch (error) {
+    console.error('Error deleting health schedule:', error);
+    throw new Error('Failed to delete health schedule');
+  }
+};
+
+// Contact functions
+export const loadContacts = async (): Promise<Contact[]> => {
+  try {
+    const contactsString = await AsyncStorage.getItem(STORAGE_KEYS.CONTACTS);
+    if (!contactsString) return [];
+
+    const contacts = JSON.parse(contactsString) as Contact[];
+    return contacts;
+  } catch (error) {
+    console.error('Error loading contacts:', error);
+    return [];
+  }
+};
+
+export const saveContact = async (contact: Contact): Promise<void> => {
+  try {
+    const contacts = await loadContacts();
+    const existingIndex = contacts.findIndex(c => c.id === contact.id);
+    
+    if (existingIndex >= 0) {
+      contacts[existingIndex] = contact;
+    } else {
+      contacts.push(contact);
+    }
+    
+    await AsyncStorage.setItem(STORAGE_KEYS.CONTACTS, JSON.stringify(contacts));
+    console.log('Contact saved successfully:', contact.id);
+  } catch (error) {
+    console.error('Error saving contact:', error);
+    throw new Error('Failed to save contact');
+  }
+};
+
+export const deleteContact = async (contactId: string): Promise<void> => {
+  try {
+    const contacts = await loadContacts();
+    const filteredContacts = contacts.filter(c => c.id !== contactId);
+    await AsyncStorage.setItem(STORAGE_KEYS.CONTACTS, JSON.stringify(filteredContacts));
+    console.log('Contact deleted successfully:', contactId);
+  } catch (error) {
+    console.error('Error deleting contact:', error);
+    throw new Error('Failed to delete contact');
   }
 };
 

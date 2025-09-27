@@ -29,6 +29,12 @@ export default function BottomNavigation() {
       route: '/diary' 
     },
     { 
+      id: 'contacts', 
+      label: 'Contacts', 
+      icon: 'people', 
+      route: '/contacts' 
+    },
+    { 
       id: 'settings', 
       label: 'Settings', 
       icon: 'settings', 

@@ -43,6 +43,19 @@ export interface HealthRecord {
   cost?: number;
 }
 
+export interface HealthSchedule {
+  id: string;
+  petId: string;
+  type: 'vaccination' | 'checkup' | 'medicine' | 'deworming' | 'grooming';
+  name: string;
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+  lastDone?: Date;
+  nextDue?: Date;
+  reminderEnabled?: boolean;
+  notificationId?: string;
+  notes?: string;
+}
+
 export interface GrowthRecord {
   id: string;
   petId: string;
@@ -119,6 +132,7 @@ export interface Contact {
   type: 'veterinarian' | 'emergency' | 'groomer' | 'sitter' | 'other';
   name: string;
   phone: string;
+  socialMedia?: string;
   address?: string;
   email?: string;
   notes?: string;
