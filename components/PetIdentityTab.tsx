@@ -7,6 +7,8 @@ import { Pet } from '../types';
 import { savePet } from '../utils/storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
+import PhotoPicker from './PhotoPicker';
+import EnhancedButton from './EnhancedButton';
 
 interface PetIdentityTabProps {
   pet: Pet;
@@ -64,6 +66,16 @@ export default function PetIdentityTab({ pet, onPetUpdate }: PetIdentityTabProps
     }
   };
 
+  const handlePhotoSelected = (uri: string) => {
+    setEditedPet(prev => ({ ...prev, profileImage: uri }));
+    console.log('Photo selected for pet:', uri);
+  };
+
+  const handlePhotoRemoved = () => {
+    setEditedPet(prev => ({ ...prev, profileImage: undefined }));
+    console.log('Photo removed from pet');
+  };
+
   const calculateAge = (birthDate: Date): string => {
     const today = new Date();
     const birth = new Date(birthDate);
@@ -81,51 +93,54 @@ export default function PetIdentityTab({ pet, onPetUpdate }: PetIdentityTabProps
   return (
     <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
       <View style={{ padding: 20 }}>
+        {/* Profile Photo Section */}
+        <View style={[commonStyles.card, { marginBottom: 20, alignItems: 'center' }]}>
+          <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Profile Photo</Text>
+          
+          {isEditing ? (
+            <PhotoPicker
+              currentPhoto={editedPet.profileImage}
+              onPhotoSelected={handlePhotoSelected}
+              onPhotoRemoved={handlePhotoRemoved}
+              size={120}
+            />
+          ) : (
+            <PhotoPicker
+              currentPhoto={pet.profileImage}
+              onPhotoSelected={() => {}} // Read-only when not editing
+              onPhotoRemoved={() => {}} // Read-only when not editing
+              size={120}
+            />
+          )}
+        </View>
+
         {/* Edit Button */}
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 20 }}>
           {!isEditing ? (
-            <TouchableOpacity
-              style={{
-                backgroundColor: colors.accent,
-                paddingHorizontal: 16,
-                paddingVertical: 8,
-                borderRadius: 8,
-                flexDirection: 'row',
-                alignItems: 'center'
-              }}
+            <EnhancedButton
+              text="Edit"
               onPress={() => setIsEditing(true)}
-            >
-              <Icon name="create" size={16} color={colors.text} style={{ marginRight: 8 }} />
-              <Text style={{ color: colors.text, fontWeight: '600' }}>Edit</Text>
-            </TouchableOpacity>
+              variant="accent"
+              size="medium"
+              icon="create"
+            />
           ) : (
             <View style={{ flexDirection: 'row', gap: 8 }}>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: colors.textLight,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                }}
+              <EnhancedButton
+                text="Cancel"
                 onPress={handleCancel}
-              >
-                <Text style={{ color: colors.text, fontWeight: '600' }}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: colors.primary,
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  opacity: saving ? 0.6 : 1
-                }}
-                onPress={handleSave}
+                variant="outline"
+                size="medium"
                 disabled={saving}
-              >
-                <Text style={{ color: colors.text, fontWeight: '600' }}>
-                  {saving ? 'Saving...' : 'Save'}
-                </Text>
-              </TouchableOpacity>
+              />
+              <EnhancedButton
+                text="Save"
+                onPress={handleSave}
+                variant="primary"
+                size="medium"
+                loading={saving}
+                disabled={saving}
+              />
             </View>
           )}
         </View>

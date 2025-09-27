@@ -1,24 +1,31 @@
 
 import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { commonStyles, colors } from '../../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect } from 'expo-router';
-import Icon from '../../components/Icon';
 import { Pet } from '../../types';
+import Icon from '../../components/Icon';
 import { loadPets } from '../../utils/storage';
+import EnhancedButton from '../../components/EnhancedButton';
 
 export default function PetsScreen() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadPetsData();
+    }, [])
+  );
+
   const loadPetsData = async () => {
     try {
       console.log('Loading pets data...');
       const petsData = await loadPets();
       setPets(petsData);
-      console.log(`Loaded ${petsData.length} pets`);
+      console.log('Pets loaded:', petsData.length);
     } catch (error) {
       console.error('Error loading pets:', error);
       Alert.alert('Error', 'Failed to load pets');
@@ -27,19 +34,11 @@ export default function PetsScreen() {
     }
   };
 
-  useFocusEffect(
-    React.useCallback(() => {
-      loadPetsData();
-    }, [])
-  );
-
   const navigateToAddPet = () => {
-    console.log('Navigating to add pet screen');
     router.push('/pets/add');
   };
 
   const navigateToPetProfile = (petId: string) => {
-    console.log('Navigating to pet profile:', petId);
     router.push(`/pets/${petId}`);
   };
 
@@ -66,112 +65,109 @@ export default function PetsScreen() {
         borderBottomColor: colors.border
       }}>
         <Text style={commonStyles.title}>My Pets</Text>
-        <TouchableOpacity onPress={navigateToAddPet}>
-          <Icon name="add-circle" size={28} color={colors.primary} />
-        </TouchableOpacity>
+        <EnhancedButton
+          text="Add Pet"
+          onPress={navigateToAddPet}
+          variant="primary"
+          size="small"
+          icon="add"
+        />
       </View>
 
-      <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-        {pets.length === 0 ? (
-          <View style={{ padding: 20 }}>
-            <View style={[commonStyles.card, { alignItems: 'center', paddingVertical: 60 }]}>
-              <Icon name="paw" size={64} color={colors.textLight} style={{ marginBottom: 20 }} />
-              <Text style={[commonStyles.subtitle, { textAlign: 'center', marginBottom: 8 }]}>No pets added yet</Text>
-              <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 24 }]}>
-                Start by adding your first pet to track their health, growth, and memories
-              </Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: colors.primary,
-                  paddingHorizontal: 32,
-                  paddingVertical: 16,
-                  borderRadius: 12,
-                }}
-                onPress={navigateToAddPet}
-              >
-                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 16 }}>Add Your First Pet</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        ) : (
+      {pets.length === 0 ? (
+        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+          <Icon name="paw" size={64} color={colors.textLight} />
+          <Text style={[commonStyles.subtitle, { marginTop: 20, marginBottom: 8 }]}>
+            No pets yet
+          </Text>
+          <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32 }]}>
+            Add your first pet to start tracking their information and memories
+          </Text>
+          <EnhancedButton
+            text="Add Your First Pet"
+            onPress={navigateToAddPet}
+            variant="primary"
+            size="large"
+            icon="add"
+          />
+        </View>
+      ) : (
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <View style={{ padding: 20 }}>
             {pets.map((pet) => (
               <TouchableOpacity
                 key={pet.id}
-                style={[commonStyles.petCard, { marginHorizontal: 0 }]}
+                style={[commonStyles.petCard, {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  opacity: pet.isMemorial ? 0.7 : 1
+                }]}
                 onPress={() => navigateToPetProfile(pet.id)}
+                activeOpacity={0.7}
               >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{
-                    width: 70,
-                    height: 70,
-                    borderRadius: 35,
-                    backgroundColor: pet.isMemorial ? colors.textLight : colors.primary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 16
-                  }}>
+                {/* Profile Image or Default Icon */}
+                <View style={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 30,
+                  backgroundColor: pet.profileImage ? 'transparent' : (pet.isMemorial ? colors.textLight : colors.primary),
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 16,
+                  overflow: 'hidden',
+                  borderWidth: pet.profileImage ? 2 : 0,
+                  borderColor: colors.border,
+                }}>
+                  {pet.profileImage ? (
+                    <Image 
+                      source={{ uri: pet.profileImage }} 
+                      style={{ width: 60, height: 60, borderRadius: 30 }}
+                      resizeMode="cover"
+                    />
+                  ) : (
                     <Icon 
                       name={pet.isMemorial ? "heart" : "paw"} 
                       size={28} 
-                      color={colors.text} 
+                      color={colors.card} 
                     />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
-                      <Text style={[commonStyles.subtitle, { marginRight: 8 }]}>{pet.name}</Text>
-                      {pet.nickname && (
-                        <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
-                          &quot;{pet.nickname}&quot;
-                        </Text>
-                      )}
-                    </View>
-                    <Text style={[commonStyles.text, { marginBottom: 2 }]}>
-                      {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
-                    </Text>
-                    {pet.color && (
-                      <Text style={[commonStyles.textLight, { marginBottom: 2 }]}>
-                        Color: {pet.color}
-                      </Text>
-                    )}
-                    {pet.dateOfBirth && (
-                      <Text style={commonStyles.textLight}>
-                        Born: {new Date(pet.dateOfBirth).toLocaleDateString()}
-                      </Text>
-                    )}
-                    {pet.isMemorial && (
-                      <Text style={[commonStyles.textLight, { color: colors.error, fontStyle: 'italic' }]}>
-                        In loving memory
-                      </Text>
-                    )}
-                  </View>
-                  <Icon name="chevron-forward" size={24} color={colors.textLight} />
+                  )}
                 </View>
+
+                {/* Pet Info */}
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[commonStyles.subtitle, { fontSize: 18, marginBottom: 0 }]}>
+                      {pet.name}
+                    </Text>
+                    {pet.isMemorial && (
+                      <Icon name="heart" size={16} color={colors.error} style={{ marginLeft: 8 }} />
+                    )}
+                  </View>
+                  
+                  <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                    {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
+                  </Text>
+                  
+                  {pet.color && (
+                    <Text style={commonStyles.textLight}>
+                      {pet.color}
+                    </Text>
+                  )}
+                  
+                  {pet.dateOfBirth && (
+                    <Text style={[commonStyles.textLight, { fontSize: 12, marginTop: 4 }]}>
+                      Born: {pet.dateOfBirth.toLocaleDateString()}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Arrow */}
+                <Icon name="chevron-forward" size={20} color={colors.textLight} />
               </TouchableOpacity>
             ))}
           </View>
-        )}
-      </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={commonStyles.bottomNav}>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/')}>
-          <Icon name="home" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem}>
-          <Icon name="paw" size={24} color={colors.primary} />
-          <Text style={commonStyles.navTextActive}>Pets</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/diary')}>
-          <Icon name="book" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Diary</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/settings')}>
-          <Icon name="settings" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

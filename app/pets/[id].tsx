@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import { commonStyles, colors } from '../../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -10,6 +10,7 @@ import { loadPets, getBiographyByPetId } from '../../utils/storage';
 import PetIdentityTab from '../../components/PetIdentityTab';
 import PetBiographyTab from '../../components/PetBiographyTab';
 import PetRoutineTab from '../../components/PetRoutineTab';
+import EnhancedButton from '../../components/EnhancedButton';
 
 type TabType = 'identity' | 'biography' | 'routine';
 
@@ -76,18 +77,13 @@ export default function PetProfileScreen() {
       <SafeAreaView style={commonStyles.container}>
         <View style={[commonStyles.content, { justifyContent: 'center' }]}>
           <Text style={commonStyles.text}>Pet not found</Text>
-          <TouchableOpacity
-            style={{
-              backgroundColor: colors.primary,
-              paddingHorizontal: 24,
-              paddingVertical: 12,
-              borderRadius: 8,
-              marginTop: 20,
-            }}
+          <EnhancedButton
+            text="Go Back"
             onPress={() => router.back()}
-          >
-            <Text style={{ color: colors.text, fontWeight: '600' }}>Go Back</Text>
-          </TouchableOpacity>
+            variant="primary"
+            size="medium"
+            style={{ marginTop: 20 }}
+          />
         </View>
       </SafeAreaView>
     );
@@ -126,19 +122,32 @@ export default function PetProfileScreen() {
             {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
           </Text>
         </View>
+        
+        {/* Profile Image or Default Icon */}
         <View style={{
           width: 50,
           height: 50,
           borderRadius: 25,
-          backgroundColor: pet.isMemorial ? colors.textLight : colors.primary,
+          backgroundColor: pet.profileImage ? 'transparent' : (pet.isMemorial ? colors.textLight : colors.primary),
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
+          borderWidth: pet.profileImage ? 2 : 0,
+          borderColor: colors.border,
         }}>
-          <Icon 
-            name={pet.isMemorial ? "heart" : "paw"} 
-            size={24} 
-            color={colors.text} 
-          />
+          {pet.profileImage ? (
+            <Image 
+              source={{ uri: pet.profileImage }} 
+              style={{ width: 50, height: 50, borderRadius: 25 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <Icon 
+              name={pet.isMemorial ? "heart" : "paw"} 
+              size={24} 
+              color={colors.text} 
+            />
+          )}
         </View>
       </View>
 
@@ -160,6 +169,7 @@ export default function PetProfileScreen() {
               borderBottomColor: activeTab === tab.id ? colors.primary : 'transparent'
             }}
             onPress={() => setActiveTab(tab.id)}
+            activeOpacity={0.7}
           >
             <Icon 
               name={tab.icon as any} 

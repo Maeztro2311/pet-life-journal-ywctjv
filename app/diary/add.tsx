@@ -9,29 +9,32 @@ import { DiaryEntry, Pet } from '../../types';
 import { saveDiaryEntry, loadPets } from '../../utils/storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
+import EnhancedButton from '../../components/EnhancedButton';
 
 const MOODS = [
-  { id: 'happy', label: 'Happy', icon: 'happy', color: colors.secondary },
+  { id: 'happy', label: 'Happy', icon: 'happy', color: colors.success },
+  { id: 'sad', label: 'Sad', icon: 'sad', color: colors.error },
   { id: 'excited', label: 'Excited', icon: 'flash', color: colors.warning },
   { id: 'calm', label: 'Calm', icon: 'leaf', color: colors.accent },
-  { id: 'playful', label: 'Playful', icon: 'game-controller', color: colors.purple },
-  { id: 'tired', label: 'Tired', icon: 'bed', color: colors.primary },
-  { id: 'sad', label: 'Sad', icon: 'sad', color: colors.textLight },
+  { id: 'playful', label: 'Playful', icon: 'football', color: colors.primary },
+  { id: 'tired', label: 'Tired', icon: 'bed', color: colors.textLight },
 ];
 
 export default function AddDiaryEntryScreen() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
-  const [entry, setEntry] = useState<Partial<DiaryEntry>>({
+  const [saving, setSaving] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+  
+  const [entryData, setEntryData] = useState<Partial<DiaryEntry>>({
     title: '',
     memo: '',
     date: new Date(),
-    mood: 'happy',
+    mood: undefined,
     petId: undefined,
+    photos: [],
   });
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
-  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadPetsData();
@@ -41,14 +44,18 @@ export default function AddDiaryEntryScreen() {
     try {
       const petsData = await loadPets();
       setPets(petsData);
-      console.log(`Loaded ${petsData.length} pets for diary entry`);
+      console.log('Pets loaded for diary entry:', petsData.length);
     } catch (error) {
       console.error('Error loading pets:', error);
     }
   };
 
+  const generateId = () => {
+    return Date.now().toString() + Math.random().toString(36).substr(2, 9);
+  };
+
   const handleSave = async () => {
-    if (!entry.memo?.trim()) {
+    if (!entryData.memo?.trim()) {
       Alert.alert('Error', 'Please write something in your diary entry');
       return;
     }
@@ -56,24 +63,24 @@ export default function AddDiaryEntryScreen() {
     setSaving(true);
     try {
       const newEntry: DiaryEntry = {
-        id: Date.now().toString(),
-        petId: entry.petId,
-        date: entry.date || new Date(),
-        title: entry.title?.trim(),
-        memo: entry.memo.trim(),
-        mood: entry.mood as any,
-        photos: [],
+        id: generateId(),
+        title: entryData.title?.trim(),
+        memo: entryData.memo.trim(),
+        date: entryData.date || new Date(),
+        mood: entryData.mood as any,
+        petId: entryData.petId,
+        photos: entryData.photos || [],
         videos: [],
       };
 
       await saveDiaryEntry(newEntry);
-      console.log('Diary entry saved successfully');
-      Alert.alert('Success', 'Diary entry saved successfully!', [
+      console.log('New diary entry added successfully');
+      Alert.alert('Success', 'Diary entry added successfully!', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     } catch (error) {
-      console.error('Error saving diary entry:', error);
-      Alert.alert('Error', 'Failed to save diary entry. Please try again.');
+      console.error('Error adding diary entry:', error);
+      Alert.alert('Error', 'Failed to add diary entry');
     } finally {
       setSaving(false);
     }
@@ -85,7 +92,7 @@ export default function AddDiaryEntryScreen() {
     }
     
     if (selectedDate) {
-      setEntry(prev => ({ ...prev, date: selectedDate }));
+      setEntryData(prev => ({ ...prev, date: selectedDate }));
     }
   };
 
@@ -94,11 +101,11 @@ export default function AddDiaryEntryScreen() {
       setShowTimePicker(false);
     }
     
-    if (selectedTime && entry.date) {
-      const newDate = new Date(entry.date);
+    if (selectedTime && entryData.date) {
+      const newDate = new Date(entryData.date);
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
-      setEntry(prev => ({ ...prev, date: newDate }));
+      setEntryData(prev => ({ ...prev, date: newDate }));
     }
   };
 
@@ -113,32 +120,31 @@ export default function AddDiaryEntryScreen() {
         borderBottomWidth: 1,
         borderBottomColor: colors.border
       }}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 16 }}>
-          <Icon name="arrow-back" size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={[commonStyles.subtitle, { flex: 1 }]}>New Diary Entry</Text>
-        <TouchableOpacity
-          onPress={handleSave}
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={{ marginRight: 16 }}
           disabled={saving}
-          style={{
-            backgroundColor: colors.primary,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            borderRadius: 8,
-            opacity: saving ? 0.6 : 1
-          }}
         >
-          <Text style={{ color: colors.text, fontWeight: '600' }}>
-            {saving ? 'Saving...' : 'Save'}
-          </Text>
+          <Icon name="arrow-back" size={24} color={saving ? colors.textLight : colors.text} />
         </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={commonStyles.subtitle}>New Diary Entry</Text>
+        </View>
+        <EnhancedButton
+          text="Save"
+          onPress={handleSave}
+          variant="primary"
+          size="small"
+          loading={saving}
+          disabled={saving || !entryData.memo?.trim()}
+        />
       </View>
 
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         <View style={{ padding: 20 }}>
           {/* Date and Time */}
           <View style={[commonStyles.card, { marginBottom: 20 }]}>
-            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>When</Text>
+            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Date & Time</Text>
             
             <View style={{ flexDirection: 'row', gap: 12 }}>
               <TouchableOpacity
@@ -157,11 +163,11 @@ export default function AddDiaryEntryScreen() {
                 onPress={() => setShowDatePicker(true)}
               >
                 <Text style={{ fontSize: 16, color: colors.text }}>
-                  {entry.date?.toLocaleDateString()}
+                  {entryData.date?.toLocaleDateString()}
                 </Text>
                 <Icon name="calendar" size={20} color={colors.textLight} />
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={{
                   flex: 1,
@@ -178,11 +184,7 @@ export default function AddDiaryEntryScreen() {
                 onPress={() => setShowTimePicker(true)}
               >
                 <Text style={{ fontSize: 16, color: colors.text }}>
-                  {entry.date?.toLocaleTimeString('en-US', {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    hour12: true
-                  })}
+                  {entryData.date?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </Text>
                 <Icon name="time" size={20} color={colors.textLight} />
               </TouchableOpacity>
@@ -190,61 +192,63 @@ export default function AddDiaryEntryScreen() {
           </View>
 
           {/* Pet Selection */}
-          <View style={[commonStyles.card, { marginBottom: 20 }]}>
-            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>About</Text>
-            
-            <Text style={[commonStyles.text, { marginBottom: 8, fontWeight: '600' }]}>Pet (Optional)</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              <TouchableOpacity
-                style={{
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 20,
-                  backgroundColor: !entry.petId ? colors.primary : colors.background,
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  marginRight: 8
-                }}
-                onPress={() => setEntry(prev => ({ ...prev, petId: undefined }))}
-              >
-                <Text style={{
-                  color: !entry.petId ? colors.text : colors.textLight,
-                  fontWeight: !entry.petId ? '600' : '400'
-                }}>
-                  General
-                </Text>
-              </TouchableOpacity>
+          {pets.length > 0 && (
+            <View style={[commonStyles.card, { marginBottom: 20 }]}>
+              <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Pet (Optional)</Text>
               
-              {pets.map(pet => (
-                <TouchableOpacity
-                  key={pet.id}
-                  style={{
-                    paddingHorizontal: 16,
-                    paddingVertical: 8,
-                    borderRadius: 20,
-                    backgroundColor: entry.petId === pet.id ? colors.primary : colors.background,
-                    borderWidth: 1,
-                    borderColor: colors.border,
-                    marginRight: 8
-                  }}
-                  onPress={() => setEntry(prev => ({ ...prev, petId: pet.id }))}
-                >
-                  <Text style={{
-                    color: entry.petId === pet.id ? colors.text : colors.textLight,
-                    fontWeight: entry.petId === pet.id ? '600' : '400'
-                  }}>
-                    {pet.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <TouchableOpacity
+                    style={{
+                      paddingHorizontal: 16,
+                      paddingVertical: 8,
+                      borderRadius: 20,
+                      backgroundColor: !entryData.petId ? colors.primary : colors.backgroundAlt,
+                      borderWidth: 1,
+                      borderColor: !entryData.petId ? colors.primary : colors.border,
+                    }}
+                    onPress={() => setEntryData(prev => ({ ...prev, petId: undefined }))}
+                  >
+                    <Text style={{ 
+                      color: !entryData.petId ? colors.card : colors.text,
+                      fontWeight: '600'
+                    }}>
+                      General
+                    </Text>
+                  </TouchableOpacity>
+                  
+                  {pets.map((pet) => (
+                    <TouchableOpacity
+                      key={pet.id}
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        borderRadius: 20,
+                        backgroundColor: entryData.petId === pet.id ? colors.primary : colors.backgroundAlt,
+                        borderWidth: 1,
+                        borderColor: entryData.petId === pet.id ? colors.primary : colors.border,
+                      }}
+                      onPress={() => setEntryData(prev => ({ ...prev, petId: pet.id }))}
+                    >
+                      <Text style={{ 
+                        color: entryData.petId === pet.id ? colors.card : colors.text,
+                        fontWeight: '600'
+                      }}>
+                        {pet.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
+            </View>
+          )}
 
           {/* Mood Selection */}
           <View style={[commonStyles.card, { marginBottom: 20 }]}>
-            <Text style={[commonStyles.text, { marginBottom: 12, fontWeight: '600' }]}>Mood</Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              {MOODS.map(mood => (
+            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Mood (Optional)</Text>
+            
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+              {MOODS.map((mood) => (
                 <TouchableOpacity
                   key={mood.id}
                   style={{
@@ -253,21 +257,25 @@ export default function AddDiaryEntryScreen() {
                     paddingHorizontal: 12,
                     paddingVertical: 8,
                     borderRadius: 20,
-                    backgroundColor: entry.mood === mood.id ? mood.color : colors.background,
+                    backgroundColor: entryData.mood === mood.id ? mood.color : colors.backgroundAlt,
                     borderWidth: 1,
-                    borderColor: colors.border,
+                    borderColor: entryData.mood === mood.id ? mood.color : colors.border,
                   }}
-                  onPress={() => setEntry(prev => ({ ...prev, mood: mood.id as any }))}
+                  onPress={() => setEntryData(prev => ({ 
+                    ...prev, 
+                    mood: prev.mood === mood.id ? undefined : mood.id as any
+                  }))}
                 >
                   <Icon 
                     name={mood.icon as any} 
                     size={16} 
-                    color={entry.mood === mood.id ? colors.text : colors.textLight}
+                    color={entryData.mood === mood.id ? colors.card : colors.text}
                     style={{ marginRight: 6 }}
                   />
-                  <Text style={{
-                    color: entry.mood === mood.id ? colors.text : colors.textLight,
-                    fontWeight: entry.mood === mood.id ? '600' : '400'
+                  <Text style={{ 
+                    color: entryData.mood === mood.id ? colors.card : colors.text,
+                    fontWeight: '600',
+                    fontSize: 12
                   }}>
                     {mood.label}
                   </Text>
@@ -278,7 +286,7 @@ export default function AddDiaryEntryScreen() {
 
           {/* Title */}
           <View style={[commonStyles.card, { marginBottom: 20 }]}>
-            <Text style={[commonStyles.text, { marginBottom: 8, fontWeight: '600' }]}>Title (Optional)</Text>
+            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Title (Optional)</Text>
             <TextInput
               style={{
                 borderWidth: 1,
@@ -290,16 +298,16 @@ export default function AddDiaryEntryScreen() {
                 color: colors.text,
                 backgroundColor: colors.background
               }}
-              value={entry.title}
-              onChangeText={(text) => setEntry(prev => ({ ...prev, title: text }))}
+              value={entryData.title}
+              onChangeText={(text) => setEntryData(prev => ({ ...prev, title: text }))}
               placeholder="Give your entry a title"
               placeholderTextColor={colors.textLight}
             />
           </View>
 
-          {/* Memo */}
+          {/* Diary Entry */}
           <View style={[commonStyles.card, { marginBottom: 20 }]}>
-            <Text style={[commonStyles.text, { marginBottom: 8, fontWeight: '600' }]}>What happened today? *</Text>
+            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Your Entry</Text>
             <TextInput
               style={{
                 borderWidth: 1,
@@ -313,38 +321,32 @@ export default function AddDiaryEntryScreen() {
                 minHeight: 120,
                 textAlignVertical: 'top'
               }}
-              value={entry.memo}
-              onChangeText={(text) => setEntry(prev => ({ ...prev, memo: text }))}
-              placeholder="Write about your pet's day, special moments, or anything noteworthy..."
+              value={entryData.memo}
+              onChangeText={(text) => setEntryData(prev => ({ ...prev, memo: text }))}
+              placeholder="What happened today? Share your thoughts, memories, or observations about your pets..."
               placeholderTextColor={colors.textLight}
               multiline
             />
           </View>
 
-          {/* Future: Photo/Video Upload */}
-          <View style={[commonStyles.card, { marginBottom: 40 }]}>
-            <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Media (Coming Soon)</Text>
-            <View style={{
-              borderWidth: 2,
-              borderColor: colors.border,
-              borderStyle: 'dashed',
-              borderRadius: 12,
-              padding: 40,
-              alignItems: 'center'
-            }}>
-              <Icon name="camera" size={32} color={colors.textLight} style={{ marginBottom: 8 }} />
-              <Text style={[commonStyles.textLight, { textAlign: 'center' }]}>
-                Photo and video uploads coming soon!
-              </Text>
-            </View>
-          </View>
+          {/* Save Button */}
+          <EnhancedButton
+            text="Save Entry"
+            onPress={handleSave}
+            variant="primary"
+            size="large"
+            fullWidth
+            loading={saving}
+            disabled={saving || !entryData.memo?.trim()}
+            icon="checkmark"
+          />
         </View>
       </ScrollView>
 
       {/* Date Picker */}
       {showDatePicker && (
         <DateTimePicker
-          value={entry.date || new Date()}
+          value={entryData.date || new Date()}
           mode="date"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleDateChange}
@@ -355,7 +357,7 @@ export default function AddDiaryEntryScreen() {
       {/* Time Picker */}
       {showTimePicker && (
         <DateTimePicker
-          value={entry.date || new Date()}
+          value={entryData.date || new Date()}
           mode="time"
           display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleTimeChange}

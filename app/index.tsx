@@ -1,17 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { commonStyles, colors } from '../styles/commonStyles';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { Text, View, ScrollView, TouchableOpacity, Alert, Image } from 'react-native';
 import Icon from '../components/Icon';
-import { Pet, Reminder } from '../types';
+import { commonStyles, colors } from '../styles/commonStyles';
 import { loadPets, getUpcomingReminders } from '../utils/storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pet, Reminder } from '../types';
+import { useRouter } from 'expo-router';
+import EnhancedButton from '../components/EnhancedButton';
 
 export default function HomeScreen() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
-  const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,10 +28,10 @@ export default function HomeScreen() {
       ]);
       
       setPets(petsData);
-      setUpcomingReminders(remindersData.slice(0, 3)); // Show only first 3 reminders
-      console.log(`Loaded ${petsData.length} pets and ${remindersData.length} reminders`);
+      setReminders(remindersData.slice(0, 3)); // Show only first 3 reminders
+      console.log('Home data loaded successfully');
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('Error loading home data:', error);
       Alert.alert('Error', 'Failed to load data');
     } finally {
       setLoading(false);
@@ -38,23 +39,20 @@ export default function HomeScreen() {
   };
 
   const navigateToAddPet = () => {
-    console.log('Navigating to add pet screen');
     router.push('/pets/add');
   };
 
   const navigateToPetProfile = (petId: string) => {
-    console.log('Navigating to pet profile:', petId);
     router.push(`/pets/${petId}`);
   };
 
   const navigateToDiary = () => {
-    console.log('Navigating to diary');
     router.push('/diary');
   };
 
   const navigateToReminders = () => {
-    console.log('Navigating to reminders');
-    router.push('/reminders');
+    // TODO: Implement reminders screen
+    Alert.alert('Coming Soon', 'Reminders feature will be available soon!');
   };
 
   if (loading) {
@@ -71,126 +69,185 @@ export default function HomeScreen() {
     <SafeAreaView style={commonStyles.container}>
       <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 10 }}>
+        <View style={{ paddingHorizontal: 20, paddingVertical: 20 }}>
           <Text style={commonStyles.title}>My Pets Diary</Text>
-          <Text style={commonStyles.textLight}>Welcome back! Here&apos;s what&apos;s happening with your pets.</Text>
+          <Text style={commonStyles.textLight}>
+            Welcome back! Here&apos;s what&apos;s happening with your pets.
+          </Text>
         </View>
 
         {/* Quick Stats */}
         <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginBottom: 20
-          }}>
-            <View style={[commonStyles.card, { flex: 1, marginRight: 8, alignItems: 'center', paddingVertical: 20 }]}>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={[commonStyles.card, { flex: 1, alignItems: 'center', paddingVertical: 20 }]}>
               <Icon name="paw" size={24} color={colors.primary} />
-              <Text style={[commonStyles.subtitle, { marginTop: 8, marginBottom: 4 }]}>{pets.length}</Text>
-              <Text style={commonStyles.textLight}>Pets</Text>
+              <Text style={[commonStyles.subtitle, { fontSize: 18, marginTop: 8, marginBottom: 4 }]}>
+                {pets.length}
+              </Text>
+              <Text style={commonStyles.textLight}>
+                {pets.length === 1 ? 'Pet' : 'Pets'}
+              </Text>
             </View>
-            <View style={[commonStyles.card, { flex: 1, marginLeft: 8, alignItems: 'center', paddingVertical: 20 }]}>
+            
+            <View style={[commonStyles.card, { flex: 1, alignItems: 'center', paddingVertical: 20 }]}>
               <Icon name="notifications" size={24} color={colors.accent} />
-              <Text style={[commonStyles.subtitle, { marginTop: 8, marginBottom: 4 }]}>{upcomingReminders.length}</Text>
-              <Text style={commonStyles.textLight}>Reminders</Text>
+              <Text style={[commonStyles.subtitle, { fontSize: 18, marginTop: 8, marginBottom: 4 }]}>
+                {reminders.length}
+              </Text>
+              <Text style={commonStyles.textLight}>
+                Reminders
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* My Pets Section */}
+        {/* Recent Pets */}
         <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Text style={commonStyles.subtitle}>My Pets</Text>
-            <TouchableOpacity onPress={navigateToAddPet}>
-              <Icon name="add-circle" size={28} color={colors.primary} />
-            </TouchableOpacity>
+            <Text style={commonStyles.subtitle}>Your Pets</Text>
+            {pets.length > 0 && (
+              <TouchableOpacity onPress={() => router.push('/pets')}>
+                <Text style={[commonStyles.textLight, { fontSize: 14 }]}>View All</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {pets.length === 0 ? (
             <View style={[commonStyles.card, { alignItems: 'center', paddingVertical: 40 }]}>
-              <Icon name="paw" size={48} color={colors.textLight} style={{ marginBottom: 16 }} />
-              <Text style={[commonStyles.text, { textAlign: 'center', marginBottom: 8 }]}>No pets added yet</Text>
-              <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 16 }]}>
-                Add your first pet to start tracking their health and memories
+              <Icon name="paw" size={48} color={colors.textLight} />
+              <Text style={[commonStyles.text, { marginTop: 16, marginBottom: 8, textAlign: 'center' }]}>
+                No pets added yet
               </Text>
-              <TouchableOpacity
-                style={{
-                  backgroundColor: colors.primary,
-                  paddingHorizontal: 24,
-                  paddingVertical: 12,
-                  borderRadius: 12,
-                }}
+              <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 20 }]}>
+                Add your first pet to get started
+              </Text>
+              <EnhancedButton
+                text="Add Pet"
                 onPress={navigateToAddPet}
-              >
-                <Text style={{ color: colors.text, fontWeight: '600' }}>Add Your First Pet</Text>
-              </TouchableOpacity>
+                variant="primary"
+                size="medium"
+                icon="add"
+              />
             </View>
           ) : (
-            pets.map((pet) => (
-              <TouchableOpacity
-                key={pet.id}
-                style={commonStyles.petCard}
-                onPress={() => navigateToPetProfile(pet.id)}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <View style={{ flexDirection: 'row', gap: 12 }}>
+                {pets.slice(0, 5).map((pet) => (
+                  <TouchableOpacity
+                    key={pet.id}
+                    style={[commonStyles.card, { 
+                      width: 140, 
+                      alignItems: 'center', 
+                      paddingVertical: 16,
+                      opacity: pet.isMemorial ? 0.7 : 1
+                    }]}
+                    onPress={() => navigateToPetProfile(pet.id)}
+                    activeOpacity={0.7}
+                  >
+                    {/* Profile Image or Default Icon */}
+                    <View style={{
+                      width: 50,
+                      height: 50,
+                      borderRadius: 25,
+                      backgroundColor: pet.profileImage ? 'transparent' : (pet.isMemorial ? colors.textLight : colors.primary),
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: 12,
+                      overflow: 'hidden',
+                      borderWidth: pet.profileImage ? 2 : 0,
+                      borderColor: colors.border,
+                    }}>
+                      {pet.profileImage ? (
+                        <Image 
+                          source={{ uri: pet.profileImage }} 
+                          style={{ width: 50, height: 50, borderRadius: 25 }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Icon 
+                          name={pet.isMemorial ? "heart" : "paw"} 
+                          size={24} 
+                          color={colors.card} 
+                        />
+                      )}
+                    </View>
+
+                    <Text style={[commonStyles.text, { fontWeight: '600', textAlign: 'center', marginBottom: 4 }]}>
+                      {pet.name}
+                    </Text>
+                    <Text style={[commonStyles.textLight, { fontSize: 12, textAlign: 'center' }]}>
+                      {pet.species}
+                    </Text>
+                    {pet.isMemorial && (
+                      <Icon name="heart" size={12} color={colors.error} style={{ marginTop: 4 }} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+                
+                {/* Add Pet Card */}
+                <TouchableOpacity
+                  style={[commonStyles.card, { 
+                    width: 140, 
+                    alignItems: 'center', 
+                    paddingVertical: 16,
+                    borderStyle: 'dashed',
+                    borderWidth: 2,
+                    borderColor: colors.textLight,
+                    backgroundColor: 'transparent'
+                  }]}
+                  onPress={navigateToAddPet}
+                  activeOpacity={0.7}
+                >
                   <View style={{
-                    width: 60,
-                    height: 60,
-                    borderRadius: 30,
-                    backgroundColor: colors.primary,
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
+                    backgroundColor: colors.textLight,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    marginRight: 16
+                    marginBottom: 12,
                   }}>
-                    <Icon name="paw" size={24} color={colors.text} />
+                    <Icon name="add" size={24} color={colors.card} />
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[commonStyles.subtitle, { marginBottom: 4 }]}>{pet.name}</Text>
-                    <Text style={commonStyles.textLight}>
-                      {pet.species} {pet.breed ? `• ${pet.breed}` : ''}
-                    </Text>
-                    {pet.dateOfBirth && (
-                      <Text style={commonStyles.textLight}>
-                        Born: {new Date(pet.dateOfBirth).toLocaleDateString()}
-                      </Text>
-                    )}
-                  </View>
-                  <Icon name="chevron-forward" size={20} color={colors.textLight} />
-                </View>
-              </TouchableOpacity>
-            ))
+                  <Text style={[commonStyles.textLight, { fontSize: 12, textAlign: 'center' }]}>
+                    Add Pet
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           )}
         </View>
 
         {/* Upcoming Reminders */}
-        {upcomingReminders.length > 0 && (
+        {reminders.length > 0 && (
           <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <Text style={commonStyles.subtitle}>Upcoming Reminders</Text>
               <TouchableOpacity onPress={navigateToReminders}>
-                <Text style={{ color: colors.primary, fontWeight: '600' }}>View All</Text>
+                <Text style={[commonStyles.textLight, { fontSize: 14 }]}>View All</Text>
               </TouchableOpacity>
             </View>
 
-            {upcomingReminders.map((reminder) => (
-              <View key={reminder.id} style={[commonStyles.card, { marginBottom: 8 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <View style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: colors.warning,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12
-                  }}>
-                    <Icon name="time" size={20} color={colors.text} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 2 }]}>{reminder.title}</Text>
-                    <Text style={commonStyles.textLight}>
-                      {new Date(reminder.date).toLocaleDateString()}
-                    </Text>
-                  </View>
+            {reminders.map((reminder) => (
+              <View key={reminder.id} style={[commonStyles.card, { marginBottom: 8, flexDirection: 'row', alignItems: 'center' }]}>
+                <View style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 20,
+                  backgroundColor: colors.warning,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginRight: 12
+                }}>
+                  <Icon name="notifications" size={20} color={colors.text} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[commonStyles.text, { fontWeight: '600', marginBottom: 2 }]}>
+                    {reminder.title}
+                  </Text>
+                  <Text style={commonStyles.textLight}>
+                    {new Date(reminder.date).toLocaleDateString()}
+                  </Text>
                 </View>
               </View>
             ))}
@@ -198,46 +255,29 @@ export default function HomeScreen() {
         )}
 
         {/* Quick Actions */}
-        <View style={{ paddingHorizontal: 20, marginBottom: 40 }}>
+        <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
           <Text style={[commonStyles.subtitle, { marginBottom: 16 }]}>Quick Actions</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <TouchableOpacity
-              style={[commonStyles.card, { flex: 1, marginRight: 8, alignItems: 'center', paddingVertical: 20 }]}
+          
+          <View style={{ flexDirection: 'row', gap: 12 }}>
+            <EnhancedButton
+              text="Add Entry"
               onPress={navigateToDiary}
-            >
-              <Icon name="book" size={28} color={colors.secondary} />
-              <Text style={[commonStyles.textLight, { marginTop: 8, textAlign: 'center' }]}>Diary</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[commonStyles.card, { flex: 1, marginLeft: 8, alignItems: 'center', paddingVertical: 20 }]}
+              variant="secondary"
+              size="medium"
+              icon="book"
+              style={{ flex: 1 }}
+            />
+            <EnhancedButton
+              text="Add Pet"
               onPress={navigateToAddPet}
-            >
-              <Icon name="add" size={28} color={colors.accent} />
-              <Text style={[commonStyles.textLight, { marginTop: 8, textAlign: 'center' }]}>Add Pet</Text>
-            </TouchableOpacity>
+              variant="accent"
+              size="medium"
+              icon="add"
+              style={{ flex: 1 }}
+            />
           </View>
         </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={commonStyles.bottomNav}>
-        <TouchableOpacity style={commonStyles.navItem}>
-          <Icon name="home" size={24} color={colors.primary} />
-          <Text style={commonStyles.navTextActive}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/pets')}>
-          <Icon name="paw" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Pets</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={navigateToDiary}>
-          <Icon name="book" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Diary</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={commonStyles.navItem} onPress={() => router.push('/settings')}>
-          <Icon name="settings" size={24} color={colors.text} />
-          <Text style={commonStyles.navText}>Settings</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 }
