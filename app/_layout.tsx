@@ -1,11 +1,12 @@
 
 import { Stack, useGlobalSearchParams } from 'expo-router';
 import { SafeAreaProvider, useSafeAreaInsets, SafeAreaView } from 'react-native-safe-area-context';
-import { Platform, View, KeyboardAvoidingView } from 'react-native';
+import { Platform, View, KeyboardAvoidingView, StatusBar } from 'react-native';
 import { useEffect, useState } from 'react';
 import { setupErrorLogging } from '../utils/errorLogger';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import BottomNavigation from '../components/BottomNavigation';
+import { colors } from '../styles/commonStyles';
 
 const STORAGE_KEY = 'emulated_device';
 
@@ -58,16 +59,22 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1 }}>
+        <StatusBar 
+          barStyle="dark-content" 
+          backgroundColor={colors.background}
+          translucent={false}
+        />
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
           <KeyboardAvoidingView 
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+            keyboardVerticalOffset={0}
           >
             <Stack
               screenOptions={{
                 headerShown: false,
                 animation: 'default',
+                contentStyle: { backgroundColor: colors.background },
               }}
             />
             <BottomNavigation />

@@ -48,7 +48,7 @@ export interface HealthSchedule {
   petId: string;
   type: 'vaccination' | 'checkup' | 'medicine' | 'deworming' | 'grooming';
   name: string;
-  frequency: 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom';
+  frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Annually';
   lastDone?: Date;
   nextDue?: Date;
   reminderEnabled?: boolean;
@@ -97,7 +97,7 @@ export interface Activity {
 export interface GroomingRoutine {
   id: string;
   type: 'bath' | 'brushing' | 'nails' | 'teeth' | 'other';
-  frequency: string;
+  frequency: 'Daily' | 'Weekly' | 'Monthly' | 'Annually';
   lastDone?: Date;
   nextDue?: Date;
   notes?: string;

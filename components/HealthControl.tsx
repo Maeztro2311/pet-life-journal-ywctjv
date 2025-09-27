@@ -231,33 +231,38 @@ export default function HealthControl({ pet }: HealthControlProps) {
 
   if (loading) {
     return (
-      <View style={[commonStyles.content, { justifyContent: 'center' }]}>
-        <Text style={commonStyles.text}>Loading health schedules...</Text>
-      </View>
+      <SafeAreaView style={commonStyles.safeContainer}>
+        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+          <Text style={commonStyles.text}>Loading health schedules...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <SafeAreaView style={commonStyles.safeContainer}>
       {/* Header */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        backgroundColor: colors.card,
-      }}>
-        <Text style={[commonStyles.title, { fontWeight: '700' }]}>Health Control</Text>
-        <EnhancedButton
-          text="Add Schedule"
+      <View style={commonStyles.headerContainer}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text style={[commonStyles.title, { fontWeight: '700', fontSize: 20, marginBottom: 0 }]}>
+            Health Control
+          </Text>
+          <Text style={{ 
+            fontSize: 12, 
+            color: colors.error, 
+            marginLeft: 4,
+            lineHeight: 16,
+          }}>
+            *
+          </Text>
+        </View>
+        <TouchableOpacity
+          style={commonStyles.smallButton}
           onPress={handleAddSchedule}
-          variant="primary"
-          size="small"
-          icon="add"
-        />
+        >
+          <Icon name="add" size={14} color={colors.white} />
+          <Text style={commonStyles.smallButtonText}>Add</Text>
+        </TouchableOpacity>
       </View>
 
       {schedules.length === 0 ? (
@@ -269,16 +274,20 @@ export default function HealthControl({ pet }: HealthControlProps) {
           <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32, paddingHorizontal: 40 }]}>
             Add health schedules to track vaccinations, checkups, and medical care for {pet.name}
           </Text>
-          <EnhancedButton
-            text="Add First Schedule"
+          <TouchableOpacity
+            style={[commonStyles.smallButton, { paddingHorizontal: 20, paddingVertical: 12 }]}
             onPress={handleAddSchedule}
-            variant="primary"
-            size="large"
-            icon="add"
-          />
+          >
+            <Icon name="add" size={16} color={colors.white} />
+            <Text style={[commonStyles.smallButtonText, { fontSize: 16 }]}>Add First Schedule</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={commonStyles.scrollContent}
+        >
           <View style={{ padding: 20 }}>
             {schedules.map((schedule) => {
               const typeInfo = getTypeInfo(schedule.type);
@@ -400,22 +409,13 @@ export default function HealthControl({ pet }: HealthControlProps) {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={commonStyles.container}>
+        <SafeAreaView style={commonStyles.safeContainer}>
           <KeyboardAvoidingView 
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             {/* Header */}
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-              backgroundColor: colors.card,
-            }}>
+            <View style={commonStyles.headerContainer}>
               <TouchableOpacity onPress={() => setShowForm(false)} style={{ padding: 4 }}>
                 <Icon name="close" size={24} color={colors.text} />
               </TouchableOpacity>
@@ -429,7 +429,11 @@ export default function HealthControl({ pet }: HealthControlProps) {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={{ flex: 1 }} 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={commonStyles.scrollContent}
+            >
               <View style={{ padding: 20 }}>
                 {/* Health Type */}
                 <View style={{ marginBottom: 24 }}>
@@ -533,14 +537,14 @@ export default function HealthControl({ pet }: HealthControlProps) {
                       borderColor: colors.border,
                       maxHeight: 200,
                     }}>
-                      <ScrollView>
+                      <ScrollView nestedScrollEnabled={true}>
                         {FREQUENCY_OPTIONS.map((option) => (
                           <TouchableOpacity
                             key={option}
                             style={{
                               paddingVertical: 16,
                               paddingHorizontal: 20,
-                              borderBottomWidth: 1,
+                              borderBottomWidth: option === FREQUENCY_OPTIONS[FREQUENCY_OPTIONS.length - 1] ? 0 : 1,
                               borderBottomColor: colors.border,
                             }}
                             onPress={() => {
@@ -698,13 +702,20 @@ export default function HealthControl({ pet }: HealthControlProps) {
                 </View>
 
                 {/* Save Button */}
-                <EnhancedButton
-                  text={editingSchedule ? 'Update Schedule' : 'Add Schedule'}
+                <TouchableOpacity
+                  style={[commonStyles.smallButton, { 
+                    paddingHorizontal: 20, 
+                    paddingVertical: 16,
+                    width: '100%',
+                    alignSelf: 'center',
+                  }]}
                   onPress={handleSaveSchedule}
-                  variant="primary"
-                  fullWidth
-                  size="large"
-                />
+                >
+                  <Icon name="checkmark" size={16} color={colors.white} />
+                  <Text style={[commonStyles.smallButtonText, { fontSize: 16 }]}>
+                    {editingSchedule ? 'Update Schedule' : 'Add Schedule'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </KeyboardAvoidingView>

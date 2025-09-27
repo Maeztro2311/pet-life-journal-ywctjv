@@ -190,35 +190,30 @@ export default function ImportantContacts() {
 
   if (loading) {
     return (
-      <View style={[commonStyles.content, { justifyContent: 'center' }]}>
-        <Text style={commonStyles.text}>Loading contacts...</Text>
-      </View>
+      <SafeAreaView style={commonStyles.safeContainer}>
+        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+          <Text style={commonStyles.text}>Loading contacts...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
   const groupedContacts = groupContactsByType(contacts);
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <SafeAreaView style={commonStyles.safeContainer}>
       {/* Header */}
-      <View style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingVertical: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        backgroundColor: colors.card,
-      }}>
-        <Text style={[commonStyles.title, { fontWeight: '700' }]}>Important Contacts</Text>
-        <EnhancedButton
-          text="Add Contact"
+      <View style={commonStyles.headerContainer}>
+        <Text style={[commonStyles.title, { fontWeight: '700', fontSize: 20, marginBottom: 0 }]}>
+          Important Contacts
+        </Text>
+        <TouchableOpacity
+          style={commonStyles.smallButton}
           onPress={handleAddContact}
-          variant="primary"
-          size="small"
-          icon="add"
-        />
+        >
+          <Icon name="add" size={14} color={colors.white} />
+          <Text style={commonStyles.smallButtonText}>Add</Text>
+        </TouchableOpacity>
       </View>
 
       {contacts.length === 0 ? (
@@ -230,16 +225,20 @@ export default function ImportantContacts() {
           <Text style={[commonStyles.textLight, { textAlign: 'center', marginBottom: 32, paddingHorizontal: 40 }]}>
             Add important contacts like veterinarians, groomers, and pet sitters
           </Text>
-          <EnhancedButton
-            text="Add First Contact"
+          <TouchableOpacity
+            style={[commonStyles.smallButton, { paddingHorizontal: 20, paddingVertical: 12 }]}
             onPress={handleAddContact}
-            variant="primary"
-            size="large"
-            icon="add"
-          />
+          >
+            <Icon name="add" size={16} color={colors.white} />
+            <Text style={[commonStyles.smallButtonText, { fontSize: 16 }]}>Add First Contact</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={commonStyles.scrollContent}
+        >
           <View style={{ padding: 20 }}>
             {CONTACT_TYPES.map((type) => {
               const typeContacts = groupedContacts[type.value];
@@ -384,22 +383,13 @@ export default function ImportantContacts() {
         animationType="slide"
         presentationStyle="pageSheet"
       >
-        <SafeAreaView style={commonStyles.container}>
+        <SafeAreaView style={commonStyles.safeContainer}>
           <KeyboardAvoidingView 
             style={{ flex: 1 }} 
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           >
             {/* Header */}
-            <View style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingHorizontal: 20,
-              paddingVertical: 16,
-              borderBottomWidth: 1,
-              borderBottomColor: colors.border,
-              backgroundColor: colors.card,
-            }}>
+            <View style={commonStyles.headerContainer}>
               <TouchableOpacity onPress={() => setShowForm(false)} style={{ padding: 4 }}>
                 <Icon name="close" size={24} color={colors.text} />
               </TouchableOpacity>
@@ -413,7 +403,11 @@ export default function ImportantContacts() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={{ flex: 1 }} 
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={commonStyles.scrollContent}
+            >
               <View style={{ padding: 20 }}>
                 {/* Contact Type */}
                 <View style={{ marginBottom: 24 }}>
@@ -602,13 +596,20 @@ export default function ImportantContacts() {
                 </View>
 
                 {/* Save Button */}
-                <EnhancedButton
-                  text={editingContact ? 'Update Contact' : 'Add Contact'}
+                <TouchableOpacity
+                  style={[commonStyles.smallButton, { 
+                    paddingHorizontal: 20, 
+                    paddingVertical: 16,
+                    width: '100%',
+                    alignSelf: 'center',
+                  }]}
                   onPress={handleSaveContact}
-                  variant="primary"
-                  fullWidth
-                  size="large"
-                />
+                >
+                  <Icon name="checkmark" size={16} color={colors.white} />
+                  <Text style={[commonStyles.smallButtonText, { fontSize: 16 }]}>
+                    {editingContact ? 'Update Contact' : 'Add Contact'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </KeyboardAvoidingView>

@@ -18,7 +18,9 @@
       "bundleIdentifier": "com.maeztro.id.MyPets",
       "icon": "./assets/images/503b02ae-e6d3-41ca-a80d-e9b0cca41c7c.png",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": false,
+        "UIStatusBarStyle": "UIStatusBarStyleDefault"
       }
     },
     "android": {
@@ -27,8 +29,11 @@
         "backgroundColor": "#ffffff"
       },
       "icon": "./assets/images/503b02ae-e6d3-41ca-a80d-e9b0cca41c7c.png",
-      "edgeToEdgeEnabled": true,
-      "package": "com.maeztro.id.MyPets"
+      "package": "com.maeztro.id.MyPets",
+      "softwareKeyboardLayoutMode": "adjustResize",
+      "statusBarBackgroundColor": "#FFFACD",
+      "statusBarStyle": "dark",
+      "navigationBarColor": "#FFFFFF"
     },
     "web": {
       "favicon": "./assets/images/503b02ae-e6d3-41ca-a80d-e9b0cca41c7c.png",

@@ -26,6 +26,7 @@ import GroomingForm from './GroomingForm';
 import ActivityForm from './ActivityForm';
 import HealthControl from './HealthControl';
 import { commonStyles, colors } from '../styles/commonStyles';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface PetRoutineTabProps {
   pet: Pet;
@@ -283,24 +284,13 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
     );
   };
 
-  // Quick log handlers
-  const handleQuickLogFeeding = () => {
-    Alert.alert('Quick Log', 'Feeding logged successfully!');
-  };
-
-  const handleQuickLogActivity = () => {
-    Alert.alert('Quick Log', 'Activity logged successfully!');
-  };
-
-  const handleQuickLogGrooming = () => {
-    Alert.alert('Quick Log', 'Grooming logged successfully!');
-  };
-
   if (loading) {
     return (
-      <View style={[commonStyles.content, { justifyContent: 'center' }]}>
-        <Text style={commonStyles.text}>Loading routine...</Text>
-      </View>
+      <SafeAreaView style={commonStyles.safeContainer}>
+        <View style={[commonStyles.content, { justifyContent: 'center' }]}>
+          <Text style={commonStyles.text}>Loading routine...</Text>
+        </View>
+      </SafeAreaView>
     );
   }
 
@@ -315,275 +305,269 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
     switch (activeTab) {
       case 'feeding':
         return (
-          <KeyboardAvoidingView 
-            style={{ flex: 1 }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              <View style={{ padding: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <Text style={commonStyles.subtitle}>Feeding Schedule</Text>
-                  <TouchableOpacity
-                    style={[commonStyles.card, { 
-                      backgroundColor: colors.primary,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }]}
-                    onPress={handleAddFeeding}
-                  >
-                    <Icon name="add" size={16} color={colors.card} />
-                    <Text style={[commonStyles.text, { color: colors.card, marginLeft: 4, marginBottom: 0 }]}>
-                      Add
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {routine?.feedingSchedule.length === 0 ? (
-                  <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
-                    <Icon name="restaurant" size={48} color={colors.textLight} />
-                    <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
-                      No feeding schedule set up yet. Add your first feeding time to get started.
-                    </Text>
+          <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView 
+              style={{ flex: 1 }} 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <ScrollView 
+                style={{ flex: 1 }} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={commonStyles.scrollContent}
+              >
+                <View style={{ padding: 20 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <Text style={commonStyles.subtitle}>Feeding Schedule</Text>
+                    <TouchableOpacity
+                      style={commonStyles.smallButton}
+                      onPress={handleAddFeeding}
+                    >
+                      <Icon name="add" size={14} color={colors.white} />
+                      <Text style={commonStyles.smallButtonText}>Add</Text>
+                    </TouchableOpacity>
                   </View>
-                ) : (
-                  routine?.feedingSchedule.map((feeding) => (
-                    <View key={feeding.id} style={commonStyles.card}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={[commonStyles.subtitle, { fontSize: 18 }]}>
-                          {feeding.time}
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Switch
-                            value={feeding.reminderEnabled || false}
-                            onValueChange={() => toggleFeedingReminder(feeding)}
-                            trackColor={{ false: colors.border, true: colors.primary }}
-                            thumbColor={colors.card}
-                          />
-                          <TouchableOpacity
-                            onPress={() => handleEditFeeding(feeding)}
-                            style={{ marginLeft: 12, marginRight: 8 }}
-                          >
-                            <Icon name="create" size={20} color={colors.primary} />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => handleDeleteFeeding(feeding.id)}>
-                            <Icon name="trash" size={20} color={colors.error} />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      
-                      <Text style={[commonStyles.text, { marginBottom: 4 }]}>
-                        Food: {feeding.foodType}
+
+                  {routine?.feedingSchedule.length === 0 ? (
+                    <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
+                      <Icon name="restaurant" size={48} color={colors.textLight} />
+                      <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
+                        No feeding schedule set up yet. Add your first feeding time to get started.
                       </Text>
-                      <Text style={[commonStyles.text, { marginBottom: 8 }]}>
-                        Portion: {feeding.portionSize}
-                      </Text>
-                      
-                      {feeding.notes && (
-                        <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
-                          {feeding.notes}
-                        </Text>
-                      )}
-                      
-                      {feeding.reminderEnabled && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                          <Icon name="notifications" size={14} color={colors.primary} />
-                          <Text style={[commonStyles.textLight, { marginLeft: 4, fontSize: 12 }]}>
-                            Reminder enabled
-                          </Text>
-                        </View>
-                      )}
                     </View>
-                  ))
-                )}
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        );
-
-      case 'activity':
-        return (
-          <KeyboardAvoidingView 
-            style={{ flex: 1 }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              <View style={{ padding: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <Text style={commonStyles.subtitle}>Activity Log</Text>
-                  <TouchableOpacity
-                    style={[commonStyles.card, { 
-                      backgroundColor: colors.secondary,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }]}
-                    onPress={handleAddActivity}
-                  >
-                    <Icon name="add" size={16} color={colors.card} />
-                    <Text style={[commonStyles.text, { color: colors.card, marginLeft: 4, marginBottom: 0 }]}>
-                      Add
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {routine?.activityLog.length === 0 ? (
-                  <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
-                    <Icon name="fitness" size={48} color={colors.textLight} />
-                    <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
-                      No activities logged yet. Add your first activity to start tracking.
-                    </Text>
-                  </View>
-                ) : (
-                  routine?.activityLog
-                    .sort((a, b) => b.date.getTime() - a.date.getTime())
-                    .slice(0, 10)
-                    .map((activity) => (
-                      <View key={activity.id} style={commonStyles.card}>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                          <Text style={[commonStyles.subtitle, { fontSize: 16 }]}>
-                            {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+                  ) : (
+                    routine?.feedingSchedule.map((feeding) => (
+                      <View key={feeding.id} style={commonStyles.card}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                          <Text style={[commonStyles.subtitle, { fontSize: 18 }]}>
+                            {feeding.time}
                           </Text>
                           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Switch
+                              value={feeding.reminderEnabled || false}
+                              onValueChange={() => toggleFeedingReminder(feeding)}
+                              trackColor={{ false: colors.border, true: colors.primary }}
+                              thumbColor={colors.card}
+                            />
                             <TouchableOpacity
-                              onPress={() => handleEditActivity(activity)}
-                              style={{ marginRight: 8 }}
+                              onPress={() => handleEditFeeding(feeding)}
+                              style={{ marginLeft: 12, marginRight: 8 }}
                             >
                               <Icon name="create" size={20} color={colors.primary} />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => handleDeleteActivity(activity.id)}>
+                            <TouchableOpacity onPress={() => handleDeleteFeeding(feeding.id)}>
                               <Icon name="trash" size={20} color={colors.error} />
                             </TouchableOpacity>
                           </View>
                         </View>
                         
-                        <Text style={[commonStyles.textLight, { marginBottom: 4 }]}>
-                          {activity.date.toLocaleDateString()} at {activity.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                          Food: {feeding.foodType}
+                        </Text>
+                        <Text style={[commonStyles.text, { marginBottom: 8 }]}>
+                          Portion: {feeding.portionSize}
                         </Text>
                         
-                        {activity.duration && (
-                          <Text style={[commonStyles.text, { marginBottom: 4 }]}>
-                            Duration: {activity.duration} minutes
+                        {feeding.notes && (
+                          <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
+                            {feeding.notes}
                           </Text>
                         )}
                         
-                        {activity.description && (
-                          <Text style={[commonStyles.text, { marginBottom: 4 }]}>
-                            {activity.description}
-                          </Text>
-                        )}
-                        
-                        {activity.favoriteToys && activity.favoriteToys.length > 0 && (
-                          <Text style={[commonStyles.textLight, { fontSize: 12 }]}>
-                            Toys: {activity.favoriteToys.join(', ')}
-                          </Text>
+                        {feeding.reminderEnabled && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                            <Icon name="notifications" size={14} color={colors.primary} />
+                            <Text style={[commonStyles.textLight, { marginLeft: 4, fontSize: 12 }]}>
+                              Reminder enabled
+                            </Text>
+                          </View>
                         )}
                       </View>
                     ))
-                )}
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
+                  )}
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        );
+
+      case 'activity':
+        return (
+          <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView 
+              style={{ flex: 1 }} 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <ScrollView 
+                style={{ flex: 1 }} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={commonStyles.scrollContent}
+              >
+                <View style={{ padding: 20 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <Text style={commonStyles.subtitle}>Activity Log</Text>
+                    <TouchableOpacity
+                      style={[commonStyles.smallButton, { backgroundColor: colors.secondary }]}
+                      onPress={handleAddActivity}
+                    >
+                      <Icon name="add" size={14} color={colors.white} />
+                      <Text style={commonStyles.smallButtonText}>Add</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {routine?.activityLog.length === 0 ? (
+                    <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
+                      <Icon name="fitness" size={48} color={colors.textLight} />
+                      <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
+                        No activities logged yet. Add your first activity to start tracking.
+                      </Text>
+                    </View>
+                  ) : (
+                    routine?.activityLog
+                      .sort((a, b) => b.date.getTime() - a.date.getTime())
+                      .slice(0, 10)
+                      .map((activity) => (
+                        <View key={activity.id} style={commonStyles.card}>
+                          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                            <Text style={[commonStyles.subtitle, { fontSize: 16 }]}>
+                              {activity.type.charAt(0).toUpperCase() + activity.type.slice(1)}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                              <TouchableOpacity
+                                onPress={() => handleEditActivity(activity)}
+                                style={{ marginRight: 8 }}
+                              >
+                                <Icon name="create" size={20} color={colors.primary} />
+                              </TouchableOpacity>
+                              <TouchableOpacity onPress={() => handleDeleteActivity(activity.id)}>
+                                <Icon name="trash" size={20} color={colors.error} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          
+                          <Text style={[commonStyles.textLight, { marginBottom: 4 }]}>
+                            {activity.date.toLocaleDateString()} at {activity.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Text>
+                          
+                          {activity.duration && (
+                            <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                              Duration: {activity.duration} minutes
+                            </Text>
+                          )}
+                          
+                          {activity.description && (
+                            <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                              {activity.description}
+                            </Text>
+                          )}
+                          
+                          {activity.favoriteToys && activity.favoriteToys.length > 0 && (
+                            <Text style={[commonStyles.textLight, { fontSize: 12 }]}>
+                              Toys: {activity.favoriteToys.join(', ')}
+                            </Text>
+                          )}
+                        </View>
+                      ))
+                  )}
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
         );
 
       case 'grooming':
         return (
-          <KeyboardAvoidingView 
-            style={{ flex: 1 }} 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          >
-            <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
-              <View style={{ padding: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                  <Text style={commonStyles.subtitle}>Grooming Routine</Text>
-                  <TouchableOpacity
-                    style={[commonStyles.card, { 
-                      backgroundColor: colors.accent,
-                      paddingHorizontal: 16,
-                      paddingVertical: 8,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                    }]}
-                    onPress={handleAddGrooming}
-                  >
-                    <Icon name="add" size={16} color={colors.card} />
-                    <Text style={[commonStyles.text, { color: colors.card, marginLeft: 4, marginBottom: 0 }]}>
-                      Add
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                {!routine?.groomingRoutine || routine.groomingRoutine.length === 0 ? (
-                  <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
-                    <Icon name="cut" size={48} color={colors.textLight} />
-                    <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
-                      No grooming routine set up yet. Add grooming tasks to keep track of your pet's care.
-                    </Text>
+          <SafeAreaView style={{ flex: 1 }}>
+            <KeyboardAvoidingView 
+              style={{ flex: 1 }} 
+              behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            >
+              <ScrollView 
+                style={{ flex: 1 }} 
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={commonStyles.scrollContent}
+              >
+                <View style={{ padding: 20 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <Text style={commonStyles.subtitle}>Grooming Routine</Text>
+                    <TouchableOpacity
+                      style={[commonStyles.smallButton, { backgroundColor: colors.accent }]}
+                      onPress={handleAddGrooming}
+                    >
+                      <Icon name="add" size={14} color={colors.white} />
+                      <Text style={commonStyles.smallButtonText}>Add</Text>
+                    </TouchableOpacity>
                   </View>
-                ) : (
-                  routine.groomingRoutine.map((grooming) => (
-                    <View key={grooming.id} style={commonStyles.card}>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <Text style={[commonStyles.subtitle, { fontSize: 18 }]}>
-                          {grooming.type.charAt(0).toUpperCase() + grooming.type.slice(1)}
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                          <Switch
-                            value={grooming.reminderEnabled || false}
-                            onValueChange={() => toggleGroomingReminder(grooming)}
-                            trackColor={{ false: colors.border, true: colors.accent }}
-                            thumbColor={colors.card}
-                          />
-                          <TouchableOpacity
-                            onPress={() => handleEditGrooming(grooming)}
-                            style={{ marginLeft: 12, marginRight: 8 }}
-                          >
-                            <Icon name="create" size={20} color={colors.primary} />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => handleDeleteGrooming(grooming.id)}>
-                            <Icon name="trash" size={20} color={colors.error} />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                      
-                      <Text style={[commonStyles.text, { marginBottom: 4 }]}>
-                        Frequency: {grooming.frequency}
+
+                  {!routine?.groomingRoutine || routine.groomingRoutine.length === 0 ? (
+                    <View style={[commonStyles.card, { alignItems: 'center', padding: 32 }]}>
+                      <Icon name="cut" size={48} color={colors.textLight} />
+                      <Text style={[commonStyles.textLight, { marginTop: 16, textAlign: 'center' }]}>
+                        No grooming routine set up yet. Add grooming tasks to keep track of your pet's care.
                       </Text>
-                      
-                      {grooming.lastDone && (
-                        <Text style={[commonStyles.text, { marginBottom: 4 }]}>
-                          Last done: {grooming.lastDone.toLocaleDateString()}
-                        </Text>
-                      )}
-                      
-                      {grooming.nextDue && (
-                        <Text style={[commonStyles.text, { marginBottom: 8 }]}>
-                          Next due: {grooming.nextDue.toLocaleDateString()}
-                        </Text>
-                      )}
-                      
-                      {grooming.notes && (
-                        <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
-                          {grooming.notes}
-                        </Text>
-                      )}
-                      
-                      {grooming.reminderEnabled && (
-                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
-                          <Icon name="notifications" size={14} color={colors.accent} />
-                          <Text style={[commonStyles.textLight, { marginLeft: 4, fontSize: 12 }]}>
-                            Reminder enabled
-                          </Text>
-                        </View>
-                      )}
                     </View>
-                  ))
-                )}
-              </View>
-            </ScrollView>
-          </KeyboardAvoidingView>
+                  ) : (
+                    routine.groomingRoutine.map((grooming) => (
+                      <View key={grooming.id} style={commonStyles.card}>
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                          <Text style={[commonStyles.subtitle, { fontSize: 18 }]}>
+                            {grooming.type.charAt(0).toUpperCase() + grooming.type.slice(1)}
+                          </Text>
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <Switch
+                              value={grooming.reminderEnabled || false}
+                              onValueChange={() => toggleGroomingReminder(grooming)}
+                              trackColor={{ false: colors.border, true: colors.accent }}
+                              thumbColor={colors.card}
+                            />
+                            <TouchableOpacity
+                              onPress={() => handleEditGrooming(grooming)}
+                              style={{ marginLeft: 12, marginRight: 8 }}
+                            >
+                              <Icon name="create" size={20} color={colors.primary} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteGrooming(grooming.id)}>
+                              <Icon name="trash" size={20} color={colors.error} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        
+                        <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                          Frequency: {grooming.frequency}
+                        </Text>
+                        
+                        {grooming.lastDone && (
+                          <Text style={[commonStyles.text, { marginBottom: 4 }]}>
+                            Last done: {grooming.lastDone.toLocaleDateString()}
+                          </Text>
+                        )}
+                        
+                        {grooming.nextDue && (
+                          <Text style={[commonStyles.text, { marginBottom: 8 }]}>
+                            Next due: {grooming.nextDue.toLocaleDateString()}
+                          </Text>
+                        )}
+                        
+                        {grooming.notes && (
+                          <Text style={[commonStyles.textLight, { fontStyle: 'italic' }]}>
+                            {grooming.notes}
+                          </Text>
+                        )}
+                        
+                        {grooming.reminderEnabled && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}>
+                            <Icon name="notifications" size={14} color={colors.accent} />
+                            <Text style={[commonStyles.textLight, { marginLeft: 4, fontSize: 12 }]}>
+                              Reminder enabled
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    ))
+                  )}
+                </View>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
         );
 
       case 'health':
@@ -595,7 +579,7 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1 }}>
       {/* Tab Navigation */}
       <View style={{
         flexDirection: 'row',
@@ -668,6 +652,6 @@ export default function PetRoutineTab({ pet }: PetRoutineTabProps) {
         onSave={handleSaveGrooming}
         initialData={editingGrooming}
       />
-    </View>
+    </SafeAreaView>
   );
 }

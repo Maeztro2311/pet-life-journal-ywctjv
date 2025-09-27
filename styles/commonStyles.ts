@@ -7,9 +7,11 @@ export const colors = {
   accent: '#BAE1FF',       // Pastel Blue
   background: '#FFFACD',   // Light Cream
   backgroundAlt: '#F5F5DC', // Beige
+  surface: '#F8F8F8',      // Light Surface
   text: '#4A4A4A',         // Dark Gray for readability
   textLight: '#7A7A7A',    // Light Gray
   card: '#FFFFFF',         // White
+  white: '#FFFFFF',        // Pure White
   border: '#E0E0E0',       // Light Border
   success: '#BAFFC9',      // Pastel Green
   warning: '#FFDFBA',      // Pastel Orange
@@ -34,6 +36,26 @@ export const buttonStyles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
+  small: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    minWidth: 80,
+    alignSelf: 'flex-start',
+  },
+  medium: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    minWidth: 100,
+    alignSelf: 'flex-start',
+  },
+  large: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 16,
+    minWidth: 120,
+  },
 });
 
 export const commonStyles = StyleSheet.create({
@@ -48,6 +70,10 @@ export const commonStyles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  safeContainer: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
   content: {
     flex: 1,
     alignItems: 'center',
@@ -55,6 +81,9 @@ export const commonStyles = StyleSheet.create({
     maxWidth: 800,
     width: '100%',
     paddingHorizontal: 20,
+  },
+  scrollContent: {
+    paddingBottom: 100, // Extra space for safe area
   },
   title: {
     fontSize: 28,
@@ -82,6 +111,22 @@ export const commonStyles = StyleSheet.create({
     fontWeight: '400',
     color: colors.textLight,
     lineHeight: 20,
+  },
+  label: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+    backgroundColor: colors.card,
   },
   section: {
     width: '100%',
@@ -114,6 +159,7 @@ export const commonStyles = StyleSheet.create({
     backgroundColor: colors.card,
     paddingVertical: 12,
     paddingHorizontal: 20,
+    paddingBottom: 20, // Extra padding for safe area
     borderTopWidth: 1,
     borderTopColor: colors.border,
     justifyContent: 'space-around',
@@ -136,5 +182,31 @@ export const commonStyles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
     marginTop: 4,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.card,
+  },
+  smallButton: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    minWidth: 80,
+  },
+  smallButtonText: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 4,
   },
 });

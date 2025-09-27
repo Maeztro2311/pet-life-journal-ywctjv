@@ -7,6 +7,7 @@ import Icon from './Icon';
 import EnhancedButton from './EnhancedButton';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface GroomingFormProps {
   isVisible: boolean;
@@ -88,28 +89,23 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <SafeAreaView style={commonStyles.safeContainer}>
         {/* Header */}
-        <View style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingHorizontal: 20,
-          paddingVertical: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.border,
-          backgroundColor: colors.card,
-        }}>
+        <View style={commonStyles.headerContainer}>
           <TouchableOpacity onPress={handleClose} style={{ padding: 4 }}>
             <Icon name="close" size={24} color={colors.text} />
           </TouchableOpacity>
-          <Text style={[commonStyles.title, { fontSize: 18, fontWeight: '600' }]}>
+          <Text style={[commonStyles.title, { fontSize: 18, fontWeight: '600', marginBottom: 0 }]}>
             {initialData ? 'Edit Grooming' : 'Add Grooming'}
           </Text>
           <View style={{ width: 32 }} />
         </View>
 
-        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          style={{ flex: 1 }} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={commonStyles.scrollContent}
+        >
           <View style={{ padding: 20 }}>
             {/* Grooming Type */}
             <View style={{ marginBottom: 24 }}>
@@ -191,14 +187,14 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
                   borderColor: colors.border,
                   maxHeight: 200,
                 }}>
-                  <ScrollView>
+                  <ScrollView nestedScrollEnabled={true}>
                     {FREQUENCY_OPTIONS.map((option) => (
                       <TouchableOpacity
                         key={option}
                         style={{
                           paddingVertical: 16,
                           paddingHorizontal: 20,
-                          borderBottomWidth: 1,
+                          borderBottomWidth: option === FREQUENCY_OPTIONS[FREQUENCY_OPTIONS.length - 1] ? 0 : 1,
                           borderBottomColor: colors.border,
                         }}
                         onPress={() => {
@@ -332,16 +328,23 @@ export default function GroomingForm({ isVisible, onClose, onSave, initialData }
             </View>
 
             {/* Save Button */}
-            <EnhancedButton
-              text={initialData ? 'Update Grooming' : 'Add Grooming'}
+            <TouchableOpacity
+              style={[commonStyles.smallButton, { 
+                paddingHorizontal: 20, 
+                paddingVertical: 16,
+                width: '100%',
+                alignSelf: 'center',
+              }]}
               onPress={handleSave}
-              variant="primary"
-              fullWidth
-              size="large"
-            />
+            >
+              <Icon name="checkmark" size={16} color={colors.white} />
+              <Text style={[commonStyles.smallButtonText, { fontSize: 16 }]}>
+                {initialData ? 'Update Grooming' : 'Add Grooming'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
